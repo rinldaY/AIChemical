@@ -1,0 +1,55 @@
+# =============================================================================
+# .gitignore — TEP Anomaly Detection Project
+# =============================================================================
+
+# --- Data (ไม่ commit ข้อมูลดิบและผลลัพธ์) ---
+data/raw/
+data/processed/
+*.dat
+*.mat
+*.RData
+*.rda
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Experiment outputs ---
+checkpoints/
+logs/
+outputs/
+results/
+*.pt
+*.pth
+*.pkl
+*.h5
+
+# --- Config overrides (ไม่ commit local overrides) ---
+config/local_*.yaml
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo

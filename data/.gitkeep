@@ -1,0 +1,3 @@
+# data/.gitkeep — placeholder เพื่อให้ git track โฟลเดอร์ว่าง
+# วางไฟล์ TEP ดิบใน data/raw/
+# ดู docs/data_checklist.md สำหรับรูปแบบที่รองรับ

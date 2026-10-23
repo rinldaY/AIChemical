@@ -1,0 +1,76 @@
+# =============================================================================
+# config/default_config.yaml
+# Configuration สำหรับโครงงาน TEP Anomaly Detection
+# ค่าทั้งหมดสามารถ override ได้ด้วย local_config.yaml (ไม่ commit)
+# =============================================================================
+
+# --- Project ---
+project:
+  name: "tep-anomaly-detection"
+  version: "0.1.0"
+  description: "AI-Based Chemical Reactor Anomaly Detection using TEP"
+
+# --- Reproducibility ---
+random_seed: 42
+
+# --- Paths ---
+paths:
+  data_raw: "data/raw"
+  data_processed: "data/processed"
+  outputs: "outputs"
+  logs: "logs"
+  checkpoints: "checkpoints"
+
+# --- Data Loading ---
+data:
+  # Schema ที่คาดว่าจะพบ: "harvard_csv", "matlab_dat", "unknown"
+  expected_schema: "harvard_csv"
+
+  # คอลัมน์ที่ต้องมีสำหรับ Schema A (Harvard)
+  required_columns_schema_a:
+    metadata: ["simulationRun", "sample", "faultNumber"]
+    xmeas_pattern: "xmeas_"          # prefix หรือ pattern ของ XMEAS columns
+    xmv_pattern: "xmv_"              # prefix หรือ pattern ของ XMV columns
+    n_xmeas: 41
+    n_xmv: 11
+    total_features: 52               # 41 + 11
+
+  # Fault IDs
+  fault_ids:
+    normal: 0
+    all_faults: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    hard_faults: [3, 9, 15]          # documented hard-to-detect faults
+
+  # การแบ่งข้อมูล (สัดส่วน simulationRun)
+  split:
+    # Train: normal data เท่านั้น
+    train_normal_ratio: 0.70
+    # Val: normal + fault
+    val_normal_ratio: 0.15
+    val_fault_ratio: 0.50
+    # Test: normal + fault (เหลือ)
+    test_normal_ratio: 0.15
+    test_fault_ratio: 0.50
+    # หมายเหตุ: สัดส่วนข้างต้นเป็นแผน จะปรับหลังดูข้อมูลจริง
+
+  # Sliding window (สำหรับ LSTM) — ยังไม่ใช้ในขั้นตอนนี้
+  window:
+    size: 60                         # จำนวน samples ต่อ window (TBD)
+    stride: 1                        # stride สำหรับ training windows
+    # ห้าม window ซ้อนทับข้าม split
+
+# --- Preprocessing ---
+preprocessing:
+  scaler: "StandardScaler"           # fit จาก Train เท่านั้น
+  handle_missing: "raise"            # "raise" | "drop" | "interpolate"
+
+# --- Logging ---
+logging:
+  level: "INFO"                      # DEBUG | INFO | WARNING | ERROR
+  format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+  save_to_file: true
+
+# --- Experiment Tracking ---
+experiment:
+  save_config: true                  # บันทึก config ที่ใช้จริงทุก run
+  save_library_versions: true        # บันทึก library versions
