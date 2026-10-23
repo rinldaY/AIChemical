@@ -287,7 +287,10 @@ class AutoencoderDetector:
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        checkpoint = torch.load(filepath, map_location=device)
+        try:
+            checkpoint = torch.load(filepath, map_location=device, weights_only=False)
+        except TypeError:
+            checkpoint = torch.load(filepath, map_location=device)
         detector = cls(
             input_dim=checkpoint["input_dim"],
             latent_dim=checkpoint["latent_dim"],
