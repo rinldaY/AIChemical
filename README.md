@@ -192,7 +192,28 @@ tests/test_validator.py::TestValidationResult ...                       [100%]
 
 ---
 
-## 📈 การรันการประเมิน Benchmark บนข้อมูลจริง
+## 🌐 หน้าเว็บแสดงผลการทำงาน (Interactive Web Dashboard)
+
+โครงการมีหน้าเว็บ Interactive Dashboard แบบ Standalone (สร้างด้วย HTML5 Canvas, SVG และ Tailwind CSS) เพื่อแสดงผลสรุปและจำลองการตรวจจับแบบ Real-Time:
+
+### การเปิดใช้งาน Web Dashboard:
+```bash
+# วิธีที่ 1: รันผ่านสคริปต์เปิด Local Server และเบราว์เซอร์อัตโนมัติ
+python scripts/serve_dashboard.py
+
+# วิธีที่ 2: ดับเบิลคลิกเปิดไฟล์ web/index.html ในเว็บเบราว์เซอร์ (Chrome, Edge) ได้ทันทีโดยไม่ต้องต่ออินเทอร์เน็ต
+```
+
+### ฟังก์ชันเด่นของ Dashboard:
+1. **Benchmark Matrix**: ตารางเปรียบเทียบผลการทดลองทั้ง 5 โมเดล พร้อมกราฟแท่งเปรียบเทียบ FAR และ AUROC
+2. **Real-time Anomaly Simulator**:
+   - เลือกจำลองสถานการณ์ความผิดปกติ: Normal, Fault 1 (A/C Ratio), Fault 2 (B Comp), Fault 4 (Cooling Water Temp)
+   - เลือกเปรียบเทียบผลจากโมเดลใดก็ได้ (Fixed Threshold, PCA, Autoencoder, Stacked LSTM, T²-LSTM)
+   - ปรับ Time Slider ดูการพุ่งขึ้นของ Anomaly Score เทียบกับค่า Threshold (1.0) ทันทีที่เกิด Fault (Sample 160)
+3. **Model Architectures & Math Foundations**: แผนผังสถาปัตยกรรมและสมการคณิตศาสตร์ของ $T^2$-LSTM
+4. **Process & Sensor Explorer**: แผนผังกระบวนการทางเคมีและตารางเซนเซอร์ 52 ตัว
+
+---
 
 เมื่อนำชุดข้อมูลจริงวางในโฟลเดอร์ `data/raw/` (เช่น `TEP_FaultFree_Training.csv`, `TEP_Faulty_Training.csv`) สามารถรันการทดลองเปรียบเทียบทั้ง 5 โมเดลได้ด้วยคำสั่ง:
 

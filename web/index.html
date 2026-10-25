@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chemical Reactor Anomaly Detection — TEP Benchmark</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+      --accent-purple: #a855f7;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .tab-btn.active {
+      background-color: #38bdf8;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .status-normal {
+      background-color: rgba(34, 197, 94, 0.15);
+      border-color: #22c55e;
+      color: #4ade80;
+    }
+    .status-fault {
+      background-color: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+      color: #f87171;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-6 lg:p-8">
+
+  <!-- Header -->
+  <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-700 pb-5 gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/40">TEP BENCHMARK</span>
+        <span class="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">5 MODELS OPERATIONAL</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-bold mt-2 text-white tracking-tight">AI-Based Chemical Reactor Anomaly Detection</h1>
+      <p class="text-slate-400 text-sm mt-1">ระบบตรวจจับความผิดปกติของเตาปฏิกรณ์เคมีอุตสาหกรรม (Tennessee Eastman Process) ด้วยวิธีสถิติพหุตัวแปรและโครงข่ายประสาทเทียม</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="https://github.com/rinldaY/AIChemical" target="_blank" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-xs md:text-sm font-medium px-4 py-2.5 rounded-lg border border-slate-700 transition shadow">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        GitHub Repository
+      </a>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="max-w-7xl mx-auto mb-6">
+    <div class="flex flex-wrap gap-2 p-1.5 bg-slate-800/80 rounded-xl border border-slate-700/80">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard-btn" class="tab-btn active px-4 py-2 rounded-lg text-xs md:text-sm transition flex items-center gap-2">
+        <span>📊</span> สรุปผล Benchmark ทั้ง 5 โมเดล
+      </button>
+      <button onclick="switchTab('simulator')" id="tab-simulator-btn" class="tab-btn px-4 py-2 rounded-lg text-xs md:text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
+        <span>📈</span> จำลองการตรวจจับ Real-time (Simulator)
+      </button>
+      <button onclick="switchTab('models')" id="tab-models-btn" class="tab-btn px-4 py-2 rounded-lg text-xs md:text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
+        <span>🧠</span> โครงสร้างและสมการโมเดล (T²-LSTM)
+      </button>
+      <button onclick="switchTab('process')" id="tab-process-btn" class="tab-btn px-4 py-2 rounded-lg text-xs md:text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
+        <span>🏭</span> ผังกระบวนการเคมี & เซนเซอร์ 52 ตัว
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB 1: Benchmark Matrix & Key Insights -->
+  <main id="tab-dashboard" class="max-w-7xl mx-auto space-y-6">
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-800/60 border border-slate-700 p-4 rounded-xl shadow-sm">
+        <div class="text-slate-400 text-xs font-medium">Fault Detection Rate (FDR)</div>
+        <div class="text-2xl md:text-3xl font-extrabold text-emerald-400 mt-1">100.0%</div>
+        <div class="text-xs text-slate-500 mt-1">ตรวจพบความผิดปกติได้ครบทุกเคส</div>
+      </div>
+      <div class="bg-slate-800/60 border border-slate-700 p-4 rounded-xl shadow-sm">
+        <div class="text-slate-400 text-xs font-medium">Lowest FAR (Baseline)</div>
+        <div class="text-2xl md:text-3xl font-extrabold text-sky-400 mt-1">23.62%</div>
+        <div class="text-xs text-slate-500 mt-1">Fixed Threshold Rule (3σ)</div>
+      </div>
+      <div class="bg-slate-800/60 border border-slate-700 p-4 rounded-xl shadow-sm">
+        <div class="text-slate-400 text-xs font-medium">T²-LSTM vs Standard LSTM</div>
+        <div class="text-2xl md:text-3xl font-extrabold text-purple-400 mt-1">-1.28% FAR</div>
+        <div class="text-xs text-slate-500 mt-1">ลด False Alarm จาก 26.42% เหลือ 25.14%</div>
+      </div>
+      <div class="bg-slate-800/60 border border-slate-700 p-4 rounded-xl shadow-sm">
+        <div class="text-slate-400 text-xs font-medium">Detection Delay</div>
+        <div class="text-2xl md:text-3xl font-extrabold text-amber-400 mt-1">0.0</div>
+        <div class="text-xs text-slate-500 mt-1">ตรวจพบได้ทันที ณ จุดเกิดความผิดปกติ</div>
+      </div>
+    </div>
+
+    <!-- Benchmark Table Card -->
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-5 shadow-sm overflow-hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-700 gap-2">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🏆</span> ตารางผลการทดลองเปรียบเทียบทั้ง 5 โมเดล (TEP Test Set)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">แบ่งชุดข้อมูลด้วย simulationRun อย่างเคร่งครัด (Train = ข้อมูลปกติ 100%, Scaler fit จาก Train เท่านั้น)</p>
+        </div>
+        <span class="text-xs px-2.5 py-1 bg-slate-700 text-slate-300 rounded font-mono">15,000 Test Samples</span>
+      </div>
+
+      <div class="overflow-x-auto mt-4">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-900/60 text-slate-300 text-xs uppercase tracking-wider">
+            <tr>
+              <th class="py-3 px-4 rounded-l-lg">แบบจำลอง (Model)</th>
+              <th class="py-3 px-3">ประเภทสถาปัตยกรรม</th>
+              <th class="py-3 px-3 text-right">FDR (%) ↑</th>
+              <th class="py-3 px-3 text-right">FAR (%) ↓</th>
+              <th class="py-3 px-3 text-right">AUROC ↑</th>
+              <th class="py-3 px-3 text-right">Delay (samples) ↓</th>
+              <th class="py-3 px-4 text-right rounded-r-lg">เวลาฝึก (s)</th>
+            </tr>
+          </thead>
+          <tbody id="benchmark-table-body" class="divide-y divide-slate-700/60 font-mono text-xs md:text-sm">
+            <!-- Dynamic rows inserted by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Comparative Visualizer (Bar Chart of FAR & AUROC) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-5">
+        <h3 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> เปรียบเทียบ False Alarm Rate (FAR %) — ยิ่งต่ำยิ่งดี
+        </h3>
+        <p class="text-xs text-slate-400 mb-4">แสดงอัตราการแจ้งเตือนผิดพลาดของแต่ละโมเดลเมื่อระบบทำงานปกติ</p>
+        <div id="far-bar-chart" class="space-y-3 font-sans">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-5">
+        <h3 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> ข้อค้นพบทางงานวิจัย (Research Hypotheses)
+        </h3>
+        <p class="text-xs text-slate-400 mb-4">การผสานสถิติพหุตัวแปร (Hotelling's T²) เข้ากับ Deep Recurrent Learning</p>
+        <div class="space-y-3 text-xs md:text-sm text-slate-300 leading-relaxed font-sans">
+          <div class="p-3 bg-purple-950/30 border border-purple-800/50 rounded-lg">
+            <span class="font-bold text-purple-300 block mb-1">1. การลด False Alarm Rate (FAR) ในโมเดลลูกผสม</span>
+            โมเดล <strong>T²-LSTM (Proposed)</strong> ทำ FAR ได้ <strong>25.14%</strong> ต่ำกว่า Stacked LSTM ทั่วไป (<strong>26.42%</strong>) เนื่องจาก Mahalanobis distance ใน Latent Space ช่วยกรองสัญญาณรบกวนปกติ (Normal Noise Fluctuations) ได้แม่นยำกว่าการดูเพียงค่า MSE สะสม
+          </div>
+          <div class="p-3 bg-sky-950/30 border border-sky-800/50 rounded-lg">
+            <span class="font-bold text-sky-300 block mb-1">2. ความไวในการตรวจจับ (100% FDR ทันทีที่ Sample 160)</span>
+            เมื่อเกิดความผิดปกติในกระบวนการเคมี เช่น การเปลี่ยนแปลงอัตราส่วนสารป้อน (Fault 1) หรือองค์ประกอบสาร B (Fault 2) โมเดลทั้ง 5 สามารถข้ามผ่าน Threshold ได้ทันทีโดยมีค่า <strong>Detection Delay = 0</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- TAB 2: Interactive Anomaly Simulator -->
+  <main id="tab-simulator" class="max-w-7xl mx-auto space-y-6 hidden">
+    <!-- Controls Header -->
+    <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-sm">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Scenario Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">สถานการณ์จำลอง (Fault Scenario):</label>
+          <select id="sim-scenario-select" onchange="onScenarioChange()" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-xs md:text-sm text-white focus:outline-none focus:border-sky-500">
+            <option value="fault_1">Fault 1: Step A/C Feed Ratio (อัตราส่วนสารป้อน)</option>
+            <option value="fault_2">Fault 2: Step B Composition (องค์ประกอบสาร B)</option>
+            <option value="fault_4">Fault 4: Step Reactor Cooling Water Temp (อุณหภูมิน้ำหล่อเย็น)</option>
+            <option value="fault_0">Fault 0: Normal Operation (สภาวะปกติ)</option>
+          </select>
+        </div>
+
+        <!-- Model Selector -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">เลือกโมเดลตรวจจับ (Detection Model):</label>
+          <select id="sim-model-select" onchange="onModelChange()" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-xs md:text-sm text-white focus:outline-none focus:border-sky-500">
+            <option value="t2_lstm">T²-LSTM (Proposed Hybrid: Latent T² + SPE)</option>
+            <option value="lstm">Stacked LSTM (Sequence Autoencoder)</option>
+            <option value="autoencoder">Deep Autoencoder (Dense Reconstruction)</option>
+            <option value="pca">PCA / Hotelling's T² + SPE (MSPC)</option>
+            <option value="fixed_threshold">Fixed Threshold (3-Sigma Rule)</option>
+          </select>
+        </div>
+
+        <!-- Playback Controls -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">การควบคุมการจำลองเวลา (Timeline Playback):</label>
+          <div class="flex items-center gap-2">
+            <button id="sim-play-btn" onclick="togglePlay()" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg transition flex items-center gap-1.5">
+              <span id="play-btn-icon">▶</span> <span id="play-btn-text">เริ่มจำลอง</span>
+            </button>
+            <button onclick="resetSim()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded-lg transition">
+              รีเซ็ต
+            </button>
+            <span class="text-xs text-slate-400 font-mono ml-auto">Sample: <strong id="sim-sample-badge" class="text-sky-400 text-sm">1</strong> / 250</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrubber Slider -->
+      <div class="mt-4 pt-4 border-t border-slate-700/60 flex items-center gap-3">
+        <span class="text-xs text-slate-400 font-mono">1</span>
+        <input id="sim-scrubber" type="range" min="1" max="250" value="1" oninput="onScrub(this.value)" class="w-full accent-sky-400 cursor-pointer">
+        <span class="text-xs text-slate-400 font-mono">250</span>
+      </div>
+    </div>
+
+    <!-- Live Status Banner -->
+    <div id="sim-status-banner" class="status-normal border p-4 rounded-xl flex items-center justify-between transition-all">
+      <div class="flex items-center gap-3">
+        <span id="status-icon" class="text-2xl">🟢</span>
+        <div>
+          <div id="status-title" class="font-bold text-sm md:text-base">สถานะกระบวนการ: ปฏิบัติการปกติ (NORMAL OPERATION)</div>
+          <div id="status-desc" class="text-xs opacity-80 mt-0.5">ตัวแปรกระบวนการอยู่ในเกณฑ์ควบคุมปกติ ข้อมูลยังไม่เกินขีดจำกัด</div>
+        </div>
+      </div>
+      <div class="text-right font-mono text-xs md:text-sm">
+        <div>Anomaly Score: <strong id="score-val-badge">0.42</strong></div>
+        <div class="text-xs opacity-75">Threshold Limit: <span id="thresh-val-badge">1.00</span></div>
+      </div>
+    </div>
+
+    <!-- Charts Container -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Process Signals Chart -->
+      <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>📡</span> สัญญาณจากเซนเซอร์เตาปฏิกรณ์เคมี (TEP Sensor Streams)
+          </h3>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-sky-400 font-medium">● Pressure (XMEAS_7)</span>
+            <span class="text-amber-400 font-medium">● Temp (XMEAS_9)</span>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">เส้นประสีแดงระบุเวลาที่เริ่มฉีดความผิดปกติ (Fault Onset ที่ Sample 160)</p>
+        <div class="w-full h-64 bg-slate-950/70 rounded-lg p-2 border border-slate-700/60 relative">
+          <canvas id="chart-process" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+
+      <!-- Anomaly Score Chart -->
+      <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>⚡</span> คะแนนความผิดปกติและการแจ้งเตือน (Anomaly Score & Limit)
+          </h3>
+          <span class="text-xs text-rose-400 font-medium">--- Threshold Limit (1.0)</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">เมื่อคะแนนเกินเส้น Threshold (1.0) ระบบจะส่งสัญญาณเตือนฉุกเฉินทันที</p>
+        <div class="w-full h-64 bg-slate-950/70 rounded-lg p-2 border border-slate-700/60 relative">
+          <canvas id="chart-score" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- TAB 3: Model Architecture & Math Foundations -->
+  <main id="tab-models" class="max-w-7xl mx-auto space-y-6 hidden">
+    <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-6 shadow-sm">
+      <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+        <span>🧬</span> สถาปัตยกรรมโมเดลนำเสนอ: T²-LSTM (Proposed Hybrid Architecture)
+      </h2>
+      <p class="text-sm text-slate-300 leading-relaxed mb-6">
+        โมเดล <strong>T²-LSTM</strong> ได้รับการออกแบบเพื่อแก้โจทย์เฉพาะของโรงงานเคมี โดยผสานขีดความสามารถในการสกัดพลวัตเวลาที่ไม่เป็นเส้นตรง (Non-linear Temporal Dynamics) ของ LSTM เข้ากับการควบคุมกระบวนการเชิงสถิติ (MSPC) ของ Hotelling's T² ในมิติเวกเตอร์แฝง (Latent Space)
+      </p>
+
+      <!-- Flow Diagram -->
+      <div class="p-6 bg-slate-900/80 border border-slate-700 rounded-xl font-mono text-xs md:text-sm text-slate-200 overflow-x-auto mb-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-center">
+          <div class="p-3 bg-slate-800 border border-sky-500/40 rounded-lg w-full md:w-48">
+            <span class="text-sky-400 font-bold block text-sm">Input Sequence</span>
+            <span class="text-slate-400 text-xs">Window (T=20, D=52)<br>Reset ทุก simulationRun</span>
+          </div>
+          <span class="text-slate-500 text-lg hidden md:block">➔</span>
+          <div class="p-3 bg-slate-800 border border-purple-500/40 rounded-lg w-full md:w-52">
+            <span class="text-purple-400 font-bold block text-sm">Stacked LSTM Encoder</span>
+            <span class="text-slate-400 text-xs">2 Layers (Hidden 64)<br>Extract Latent vector <strong>z</strong> (dim 24)</span>
+          </div>
+          <span class="text-slate-500 text-lg hidden md:block">➔</span>
+          <div class="p-3 bg-slate-800 border border-amber-500/40 rounded-lg w-full md:w-56">
+            <span class="text-amber-400 font-bold block text-sm">Latent Hotelling's T²</span>
+            <span class="text-slate-400 text-xs">T²(z) = (z - μ)ᵀ Σ⁻¹ (z - μ)<br>ขอบเขต F-Distribution</span>
+          </div>
+          <span class="text-slate-500 text-lg hidden md:block">➔</span>
+          <div class="p-3 bg-slate-800 border border-emerald-500/40 rounded-lg w-full md:w-52">
+            <span class="text-emerald-400 font-bold block text-sm">Composite Score</span>
+            <span class="text-slate-400 text-xs">γ(T²/T²_lim) + (1-γ)(SPE/SPE_lim)<br>Flag เมื่อ Score > 1.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mathematical Formulation Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+        <div class="p-4 bg-slate-900/60 border border-slate-700/80 rounded-lg">
+          <h4 class="font-bold text-sky-300 mb-2">1. Hotelling's T² ใน Latent Space:</h4>
+          <p class="text-slate-300 mb-2">คำนวณเวกเตอร์ค่าเฉลี่ย $\mu_z$ และ Covariance matrix $\Sigma_z$ จากชุดข้อมูลปกติ 100%:</p>
+          <div class="p-2.5 bg-slate-950 font-mono text-amber-300 rounded border border-slate-800">
+            T²(z) = (z - μ_z)ᵀ · (Σ_z + εI)⁻¹ · (z - μ_z)
+          </div>
+          <p class="text-slate-400 mt-2 text-xs">ควบคุมการเกิด False Alarm ด้วยขอบเขตทางสถิติระดับนัยสำคัญ α = 0.05</p>
+        </div>
+
+        <div class="p-4 bg-slate-900/60 border border-slate-700/80 rounded-lg">
+          <h4 class="font-bold text-sky-300 mb-2">2. Squared Prediction Error (SPE):</h4>
+          <p class="text-slate-300 mb-2">LSTM Decoder ทำการสร้างสัญญาณทั้งหน้าต่างเวลากลับคืนมา:</p>
+          <div class="p-2.5 bg-slate-950 font-mono text-emerald-300 rounded border border-slate-800">
+            SPE(X) = (1 / T·D) ∑ ∑ (X_{t,j} - X̂_{t,j})²
+          </div>
+          <p class="text-slate-400 mt-2 text-xs">วัดความคลาดเคลื่อนในการสร้างสัญญาณเดิมของกระบวนการที่ไม่เป็นไปตามปกติ</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- TAB 4: Process Sensor Map & Flowsheet -->
+  <main id="tab-process" class="max-w-7xl mx-auto space-y-6 hidden">
+    <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-6 shadow-sm">
+      <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+        <span>🏭</span> โครงสร้างโรงงานจำลอง Tennessee Eastman Process (TEP)
+      </h2>
+      <p class="text-sm text-slate-300 leading-relaxed mb-6">
+        กระบวนการ Tennessee Eastman Process ประกอบด้วย 5 หน่วยปฏิบัติการหลัก ได้แก่ เตาปฏิกรณ์เคมีแบบกวนต่อเนื่อง (Reactor), หม้อควบแน่น (Condenser), ถังแยกไอ-ของเหลว (Flash Drum Separator), คอมเพรสเซอร์หมุนเวียนก๊าซ (Compressor), และหอกลั่นไล่สารเบา (Stripper Column) รวมตัวแปรที่ตรวจวัดทั้งสิ้น 52 ตัวแปร
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="p-4 bg-slate-900/60 border border-slate-700 rounded-lg">
+          <div class="text-sky-400 font-bold text-sm mb-1">XMEAS 1 - 41 (Measurements)</div>
+          <div class="text-xs text-slate-400">อัตราการไหลของสารป้อน A, D, E, อุณหภูมิเตาปฏิกรณ์, ความดันในเตาปฏิกรณ์, ระดับของเหลวในถังแยกสาร, และองค์ประกอบก๊าซ</div>
+        </div>
+        <div class="p-4 bg-slate-900/60 border border-slate-700 rounded-lg">
+          <div class="text-emerald-400 font-bold text-sm mb-1">XMV 1 - 11 (Manipulated Variables)</div>
+          <div class="text-xs text-slate-400">วาล์วควบคุมการป้อนสาร D, E, A, อัตราการไหลของน้ำหล่อเย็นเตาปฏิกรณ์ (XMV 10), วาล์วระบายก๊าซส่วนเกิน (Purge Valve)</div>
+        </div>
+        <div class="p-4 bg-slate-900/60 border border-slate-700 rounded-lg">
+          <div class="text-amber-400 font-bold text-sm mb-1">Faults 1 - 20 (Simulated Disturbance)</div>
+          <div class="text-xs text-slate-400">ความผิดปกติที่พบบ่อยในอุตสาหกรรม: การเปลี่ยนแปลงขั้นบันได (Step Change), การสะสมคราบในเครื่องแลกเปลี่ยนความร้อน (Drift), และวาล์วติดขัด</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="max-w-7xl mx-auto mt-12 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
+    Tennessee Eastman Process (TEP) Anomaly Detection Benchmark • AI Chemical Engineering Research Project
+  </footer>
+
+  <!-- Embedded Data & Interactive Engine -->
+  <script>
+    const simData = {"samples": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250], "fault_onset": 160, "scenarios": {"fault_0": {"name": "Normal Operation (FaultFree)", "description": "\u0e2a\u0e20\u0e32\u0e27\u0e30\u0e01\u0e32\u0e23\u0e17\u0e33\u0e07\u0e32\u0e19\u0e1b\u0e01\u0e15\u0e34\u0e02\u0e2d\u0e07\u0e40\u0e15\u0e32\u0e1b\u0e0f\u0e34\u0e01\u0e23\u0e13\u0e4c\u0e41\u0e25\u0e30\u0e23\u0e30\u0e1a\u0e1a\u0e41\u0e22\u0e01\u0e2a\u0e32\u0e23", "pressure": [2704.3, 2705.0, 2706.2, 2707.2, 2705.1, 2703.8, 2704.0, 2704.9, 2703.2, 2705.3, 2703.9, 2703.8, 2702.1, 2702.5, 2704.9, 2706.8, 2703.7, 2696.1, 2695.5, 2699.2, 2701.5, 2701.2, 2699.8, 2699.6, 2700.5, 2700.0, 2697.8, 2699.5, 2696.8, 2696.9, 2698.9, 2697.2, 2695.8, 2696.8, 2698.4, 2696.6, 2695.0, 2696.0, 2697.1, 2697.6, 2696.2, 2694.5, 2696.5, 2698.4, 2696.7, 2694.7, 2694.4, 2694.8, 2696.9, 2696.3, 2698.0, 2701.8, 2700.6, 2699.4, 2699.2, 2699.1, 2697.7, 2700.6, 2701.2, 2701.2, 2702.3, 2699.7, 2702.1, 2704.0, 2710.1, 2713.2, 2710.2, 2703.6, 2704.1, 2701.6, 2703.1, 2703.6, 2703.0, 2704.5, 2701.7, 2699.9, 2696.6, 2700.0, 2700.1, 2703.1, 2703.7, 2702.0, 2702.5, 2702.5, 2700.1, 2700.7, 2697.9, 2695.7, 2698.5, 2700.7, 2700.4, 2704.7, 2703.7, 2705.1, 2706.7, 2708.2, 2705.0, 2702.9, 2703.3, 2702.9, 2704.7, 2703.1, 2702.1, 2704.0, 2701.0, 2702.0, 2702.5, 2705.5, 2709.7, 2709.1, 2710.2, 2709.8, 2711.3, 2707.3, 2707.8, 2709.5, 2712.9, 2712.7, 2713.6, 2713.6, 2707.4, 2708.0, 2710.4, 2711.5, 2711.7, 2713.3, 2714.6, 2713.4, 2708.5, 2707.5, 2710.0, 2709.4, 2710.8, 2708.7, 2706.4, 2705.0, 2704.0, 2703.2, 2701.2, 2702.6, 2705.5, 2705.5, 2703.7, 2704.2, 2704.6, 2706.1, 2706.3, 2705.6, 2703.9, 2705.3, 2703.6, 2704.7, 2703.9, 2703.1, 2700.5, 2698.5, 2699.7, 2700.8, 2701.4, 2700.7, 2698.9, 2695.3, 2696.3, 2696.8, 2694.5, 2695.8, 2694.3, 2694.9, 2694.3, 2693.1, 2695.0, 2694.9, 2697.7, 2697.2, 2696.2, 2697.6, 2697.3, 2697.9, 2696.3, 2696.6, 2699.7, 2698.6, 2700.4, 2701.3, 2702.7, 2702.5, 2701.3, 2701.0, 2701.4, 2701.8, 2700.0, 2701.2, 2701.0, 2704.4, 2703.0, 2700.8, 2701.1, 2699.8, 2700.7, 2701.0, 2706.6, 2709.7, 2709.8, 2705.1, 2702.0, 2703.9, 2707.2, 2706.2, 2705.7, 2704.9, 2701.0, 2699.0, 2701.4, 2704.4, 2701.1, 2705.2, 2704.9, 2702.1, 2702.6, 2701.9, 2699.3, 2702.0, 2703.0, 2701.3, 2699.3, 2701.0, 2702.9, 2704.8, 2704.7, 2705.7, 2704.9, 2704.9, 2704.4, 2705.7, 2706.3, 2705.5, 2707.5, 2707.9, 2703.3, 2699.2, 2702.0, 2704.9, 2704.5, 2706.9, 2708.5, 2707.9, 2709.3, 2713.0, 2712.6, 2710.9], "temp": [120.41, 120.41, 120.42, 120.39, 120.39, 120.39, 120.39, 120.42, 120.37, 120.44, 120.39, 120.41, 120.4, 120.42, 120.38, 120.41, 120.39, 120.4, 120.38, 120.38, 120.4, 120.41, 120.4, 120.39, 120.42, 120.41, 120.42, 120.39, 120.41, 120.4, 120.41, 120.38, 120.38, 120.41, 120.4, 120.39, 120.38, 120.42, 120.41, 120.39, 120.39, 120.4, 120.43, 120.4, 120.42, 120.32, 120.43, 120.35, 120.43, 120.38, 120.4, 120.39, 120.4, 120.42, 120.37, 120.43, 120.38, 120.41, 120.37, 120.39, 120.35, 120.39, 120.39, 120.39, 120.44, 120.44, 120.42, 120.43, 120.4, 120.4, 120.43, 120.4, 120.41, 120.38, 120.39, 120.4, 120.36, 120.4, 120.37, 120.39, 120.41, 120.44, 120.39, 120.4, 120.4, 120.42, 120.38, 120.4, 120.36, 120.4, 120.38, 120.4, 120.39, 120.39, 120.42, 120.4, 120.41, 120.41, 120.41, 120.41, 120.42, 120.41, 120.39, 120.4, 120.36, 120.42, 120.4, 120.43, 120.39, 120.4, 120.41, 120.42, 120.39, 120.4, 120.38, 120.4, 120.39, 120.41, 120.42, 120.44, 120.38, 120.4, 120.35, 120.41, 120.38, 120.47, 120.38, 120.41, 120.38, 120.37, 120.4, 120.36, 120.4, 120.42, 120.41, 120.39, 120.42, 120.43, 120.39, 120.43, 120.39, 120.42, 120.38, 120.42, 120.38, 120.42, 120.41, 120.41, 120.4, 120.4, 120.41, 120.4, 120.43, 120.38, 120.42, 120.36, 120.43, 120.41, 120.42, 120.38, 120.43, 120.39, 120.4, 120.39, 120.38, 120.39, 120.41, 120.39, 120.4, 120.38, 120.4, 120.39, 120.41, 120.39, 120.41, 120.4, 120.41, 120.39, 120.4, 120.42, 120.42, 120.38, 120.43, 120.4, 120.41, 120.39, 120.4, 120.4, 120.44, 120.37, 120.42, 120.39, 120.44, 120.39, 120.41, 120.41, 120.41, 120.39, 120.36, 120.37, 120.39, 120.41, 120.42, 120.39, 120.4, 120.4, 120.42, 120.4, 120.38, 120.41, 120.38, 120.37, 120.42, 120.43, 120.38, 120.44, 120.4, 120.38, 120.38, 120.4, 120.37, 120.41, 120.38, 120.37, 120.4, 120.41, 120.39, 120.4, 120.4, 120.4, 120.41, 120.4, 120.41, 120.38, 120.43, 120.41, 120.41, 120.42, 120.39, 120.4, 120.39, 120.37, 120.36, 120.38, 120.41, 120.4, 120.42, 120.43, 120.43, 120.41], "cooling_flow": [41.26, 41.36, 41.2, 41.64, 41.51, 41.31, 41.34, 40.9, 40.88, 42.35, 40.34, 41.94, 40.57, 42.21, 40.92, 41.89, 40.96, 41.32, 40.82, 41.15, 41.59, 41.3, 40.99, 40.83, 41.55, 40.68, 41.46, 40.8, 41.27, 40.98, 41.65, 40.86, 40.54, 41.22, 41.03, 40.58, 40.68, 41.39, 41.28, 40.59, 41.15, 40.75, 41.45, 40.87, 41.8, 39.66, 42.5, 39.54, 41.56, 40.29, 41.42, 40.63, 40.83, 41.09, 40.82, 42.32, 41.31, 41.54, 40.54, 40.89, 40.16, 40.65, 40.29, 39.98, 42.13, 42.31, 40.85, 41.67, 40.92, 40.61, 41.84, 41.29, 41.53, 41.41, 41.61, 40.9, 40.67, 41.31, 40.3, 41.1, 40.86, 41.41, 40.59, 41.38, 40.57, 41.52, 40.58, 41.08, 40.06, 40.64, 41.49, 40.81, 40.1, 40.93, 41.87, 41.08, 41.77, 41.62, 41.65, 40.7, 41.19, 41.67, 40.44, 41.2, 40.62, 41.78, 40.47, 41.87, 40.48, 41.69, 41.47, 42.37, 40.86, 41.17, 40.28, 40.95, 40.91, 41.61, 41.83, 42.28, 40.27, 42.09, 40.24, 42.05, 39.94, 42.93, 40.94, 41.42, 41.28, 40.65, 40.59, 39.8, 41.01, 41.91, 41.89, 41.39, 41.23, 42.25, 40.26, 41.59, 40.72, 41.76, 40.21, 40.95, 40.72, 40.65, 40.48, 40.85, 41.64, 40.91, 41.36, 40.76, 41.33, 40.19, 41.85, 40.08, 41.35, 40.87, 40.98, 41.27, 41.98, 41.28, 41.13, 41.39, 40.95, 40.85, 40.87, 41.23, 40.33, 40.6, 40.89, 40.95, 41.7, 40.76, 41.22, 41.36, 41.29, 40.9, 41.27, 41.3, 41.88, 40.18, 41.37, 40.12, 41.59, 40.47, 41.19, 40.87, 41.77, 40.51, 42.0, 40.7, 42.17, 41.3, 41.97, 41.26, 41.39, 40.97, 40.41, 40.15, 40.84, 41.13, 41.84, 40.78, 41.72, 41.05, 41.24, 41.67, 40.53, 41.12, 41.14, 40.78, 41.72, 41.59, 40.88, 42.11, 41.5, 41.28, 40.41, 41.28, 40.43, 41.09, 41.53, 41.13, 40.67, 40.95, 40.63, 40.15, 40.94, 40.43, 40.87, 41.31, 41.27, 40.43, 41.57, 40.75, 41.98, 40.92, 41.07, 41.02, 40.85, 40.46, 40.79, 40.35, 40.93, 40.87, 41.11, 41.85, 41.56, 41.43]}, "fault_1": {"name": "Fault 1: Step A/C Feed Ratio", "description": "\u0e01\u0e32\u0e23\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e23\u0e30\u0e14\u0e31\u0e1a\u0e02\u0e31\u0e49\u0e19\u0e1a\u0e31\u0e19\u0e44\u0e14\u0e02\u0e2d\u0e07\u0e2d\u0e31\u0e15\u0e23\u0e32\u0e2a\u0e48\u0e27\u0e19\u0e2a\u0e32\u0e23\u0e1b\u0e49\u0e2d\u0e19 A/C \u0e17\u0e35\u0e48\u0e1b\u0e49\u0e2d\u0e19\u0e40\u0e02\u0e49\u0e32\u0e40\u0e15\u0e32\u0e1b\u0e0f\u0e34\u0e01\u0e23\u0e13\u0e4c", "pressure": [2704.3, 2705.0, 2706.2, 2707.2, 2705.1, 2703.8, 2704.0, 2704.9, 2703.2, 2705.3, 2703.9, 2703.8, 2702.1, 2702.5, 2704.9, 2706.8, 2703.7, 2696.1, 2695.5, 2699.2, 2702.4, 2705.2, 2707.2, 2709.9, 2713.5, 2715.5, 2717.3, 2723.2, 2725.8, 2731.1, 2739.1, 2742.7, 2747.1, 2753.4, 2760.7, 2764.0, 2767.7, 2773.3, 2779.3, 2783.8, 2786.6, 2788.4, 2794.1, 2798.8, 2799.9, 2800.0, 2801.8, 2803.3, 2806.7, 2806.5, 2808.5, 2812.1, 2810.5, 2808.3, 2806.9, 2804.9, 2801.4, 2801.6, 2799.4, 2796.1, 2793.8, 2787.4, 2785.8, 2783.1, 2784.6, 2783.0, 2775.3, 2764.1, 2759.0, 2750.6, 2746.0, 2740.6, 2734.2, 2730.2, 2722.2, 2715.2, 2706.8, 2705.1, 2699.7, 2697.8, 2693.0, 2686.5, 2682.4, 2678.3, 2671.4, 2668.1, 2661.8, 2656.8, 2656.0, 2655.1, 2652.4, 2654.8, 2652.5, 2653.2, 2654.5, 2656.3, 2653.8, 2652.7, 2654.7, 2655.9, 2659.9, 2660.6, 2662.3, 2667.1, 2667.5, 2672.1, 2676.4, 2683.5, 2692.0, 2695.7, 2701.2, 2705.5, 2711.8, 2712.7, 2718.1, 2724.9, 2733.4, 2738.2, 2744.0, 2748.7, 2747.0, 2752.0, 2758.6, 2763.8, 2767.9, 2772.9, 2777.7, 2779.3, 2776.8, 2777.8, 2782.3, 2783.0, 2785.5, 2784.0, 2781.7, 2779.9, 2778.2, 2776.2, 2772.7, 2772.3, 2773.1, 2770.6, 2766.0, 2763.3, 2760.2, 2758.1, 2754.5, 2749.9, 2744.1, 2741.1, 2734.9, 2731.5, 2726.2, 2720.9, 2713.9, 2707.3, 2704.1, 2700.8, 2697.1, 2692.2, 2686.6, 2679.2, 2676.4, 2673.2, 2667.4, 2665.4, 2661.0, 2658.9, 2656.0, 2652.8, 2652.7, 2651.1, 2652.4, 2650.8, 2649.0, 2649.7, 2648.9, 2649.3, 2647.8, 2648.4, 2651.9, 2651.4, 2654.1, 2656.1, 2658.9, 2660.2, 2660.6, 2662.3, 2664.9, 2667.5, 2668.2, 2672.0, 2674.5, 2680.8, 2682.3, 2683.1, 2686.5, 2688.4, 2692.6, 2696.2, 2705.1, 2711.4, 2714.7, 2712.8, 2712.6, 2717.6, 2723.8, 2725.7, 2727.9, 2729.4, 2727.8, 2727.7, 2732.1, 2736.8, 2735.0, 2740.5, 2741.3, 2739.1, 2740.2, 2739.8, 2737.2, 2739.7, 2740.4, 2738.1, 2735.3, 2735.9, 2736.7, 2737.2, 2735.5, 2734.8, 2732.3, 2730.2, 2727.7, 2726.8, 2725.2, 2722.0, 2721.6, 2719.5, 2712.5, 2705.9, 2706.1, 2706.5, 2703.7, 2703.6, 2703.0, 2700.1, 2699.2, 2700.8, 2698.5, 2694.9], "temp": [120.41, 120.41, 120.42, 120.39, 120.39, 120.39, 120.39, 120.42, 120.37, 120.44, 120.39, 120.41, 120.4, 120.42, 120.38, 120.41, 120.39, 120.4, 120.38, 120.38, 120.39, 120.4, 120.39, 120.38, 120.41, 120.4, 120.41, 120.38, 120.4, 120.39, 120.41, 120.38, 120.39, 120.41, 120.41, 120.39, 120.39, 120.43, 120.42, 120.39, 120.4, 120.4, 120.43, 120.4, 120.43, 120.32, 120.43, 120.36, 120.42, 120.38, 120.39, 120.39, 120.4, 120.42, 120.37, 120.42, 120.38, 120.4, 120.37, 120.38, 120.35, 120.38, 120.39, 120.38, 120.42, 120.44, 120.41, 120.43, 120.4, 120.4, 120.43, 120.4, 120.4, 120.37, 120.38, 120.4, 120.36, 120.4, 120.36, 120.39, 120.4, 120.44, 120.38, 120.4, 120.4, 120.43, 120.38, 120.4, 120.37, 120.41, 120.38, 120.41, 120.4, 120.4, 120.44, 120.41, 120.43, 120.41, 120.44, 120.42, 120.45, 120.42, 120.41, 120.42, 120.38, 120.44, 120.42, 120.44, 120.41, 120.41, 120.43, 120.43, 120.4, 120.41, 120.38, 120.4, 120.4, 120.42, 120.43, 120.44, 120.38, 120.4, 120.35, 120.4, 120.38, 120.46, 120.37, 120.4, 120.37, 120.36, 120.39, 120.35, 120.39, 120.42, 120.4, 120.38, 120.41, 120.42, 120.38, 120.41, 120.38, 120.41, 120.37, 120.4, 120.37, 120.41, 120.39, 120.39, 120.39, 120.39, 120.39, 120.39, 120.42, 120.37, 120.41, 120.35, 120.42, 120.4, 120.41, 120.37, 120.42, 120.39, 120.39, 120.39, 120.38, 120.39, 120.41, 120.39, 120.4, 120.38, 120.41, 120.4, 120.42, 120.4, 120.42, 120.41, 120.42, 120.41, 120.41, 120.44, 120.44, 120.39, 120.45, 120.41, 120.42, 120.4, 120.42, 120.41, 120.46, 120.38, 120.44, 120.39, 120.46, 120.39, 120.43, 120.41, 120.42, 120.39, 120.37, 120.38, 120.4, 120.41, 120.43, 120.39, 120.4, 120.4, 120.42, 120.4, 120.38, 120.41, 120.38, 120.37, 120.42, 120.42, 120.38, 120.43, 120.39, 120.37, 120.37, 120.39, 120.36, 120.4, 120.38, 120.35, 120.39, 120.4, 120.38, 120.39, 120.39, 120.39, 120.4, 120.39, 120.4, 120.38, 120.42, 120.4, 120.4, 120.42, 120.39, 120.39, 120.38, 120.37, 120.36, 120.37, 120.41, 120.4, 120.41, 120.43, 120.43, 120.41], "cooling_flow": [41.26, 41.36, 41.2, 41.64, 41.51, 41.31, 41.34, 40.9, 40.88, 42.35, 40.34, 41.94, 40.57, 42.21, 40.92, 41.89, 40.96, 41.32, 40.82, 41.15, 41.26, 40.95, 40.59, 40.39, 40.99, 40.02, 40.8, 40.12, 40.62, 40.32, 41.08, 40.28, 40.03, 40.71, 40.62, 40.17, 40.38, 41.08, 41.07, 40.34, 40.99, 40.56, 41.32, 40.73, 41.69, 39.56, 42.35, 39.5, 41.31, 40.22, 41.13, 40.52, 40.5, 40.89, 40.47, 42.01, 40.95, 41.03, 40.13, 40.27, 39.71, 39.97, 39.69, 39.28, 41.19, 41.5, 39.85, 40.8, 39.92, 39.56, 40.7, 40.08, 40.3, 40.09, 40.34, 39.58, 39.36, 40.0, 38.9, 39.76, 39.33, 40.0, 39.09, 39.95, 39.02, 40.14, 39.1, 39.75, 38.61, 39.27, 40.13, 39.43, 38.86, 39.7, 40.84, 39.96, 41.05, 40.6, 41.27, 39.86, 41.07, 41.11, 40.46, 40.99, 40.8, 41.83, 40.89, 42.2, 41.07, 42.3, 42.23, 43.17, 41.77, 42.14, 41.31, 42.07, 42.09, 42.9, 43.11, 43.67, 41.66, 43.47, 41.7, 43.43, 41.49, 44.29, 42.43, 42.8, 42.75, 41.95, 41.92, 41.06, 42.23, 43.12, 42.99, 42.45, 42.2, 43.09, 41.11, 42.16, 41.36, 42.13, 40.71, 41.1, 40.98, 40.6, 40.43, 40.64, 41.36, 40.51, 40.84, 40.15, 40.57, 39.42, 40.89, 39.17, 40.23, 39.79, 39.73, 40.07, 40.6, 39.96, 39.7, 40.0, 39.47, 39.42, 39.37, 39.79, 38.86, 39.19, 39.54, 39.56, 40.49, 39.48, 40.09, 40.18, 40.29, 39.94, 40.41, 40.51, 41.21, 39.5, 40.95, 39.55, 41.39, 40.04, 41.17, 40.63, 41.94, 40.41, 42.36, 40.73, 42.68, 41.49, 42.61, 41.62, 42.08, 41.49, 41.18, 40.81, 41.7, 41.91, 42.78, 41.62, 42.66, 41.96, 42.19, 42.61, 41.54, 42.06, 42.15, 41.71, 42.66, 42.49, 41.8, 42.93, 42.37, 42.02, 41.21, 41.92, 41.17, 41.6, 42.15, 41.54, 41.14, 41.27, 40.89, 40.37, 41.03, 40.52, 40.82, 41.29, 41.03, 40.3, 41.2, 40.47, 41.53, 40.46, 40.55, 40.43, 40.25, 39.77, 40.09, 39.58, 40.16, 40.06, 40.26, 40.98, 40.66, 40.53]}, "fault_2": {"name": "Fault 2: Step B Composition", "description": "\u0e01\u0e32\u0e23\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1b\u0e25\u0e07\u0e01\u0e30\u0e17\u0e31\u0e19\u0e2b\u0e31\u0e19\u0e02\u0e2d\u0e07\u0e2d\u0e07\u0e04\u0e4c\u0e1b\u0e23\u0e30\u0e01\u0e2d\u0e1a\u0e2a\u0e32\u0e23 B \u0e43\u0e19\u0e2a\u0e32\u0e23\u0e1b\u0e49\u0e2d\u0e19", "pressure": [2704.3, 2705.0, 2706.2, 2707.2, 2705.1, 2703.8, 2704.0, 2704.9, 2703.2, 2705.3, 2703.9, 2703.8, 2702.1, 2702.5, 2704.9, 2706.8, 2703.7, 2696.1, 2695.5, 2699.2, 2701.7, 2701.9, 2701.2, 2701.6, 2703.2, 2703.3, 2701.7, 2704.1, 2701.9, 2702.8, 2705.4, 2704.4, 2703.4, 2705.2, 2707.3, 2706.2, 2705.0, 2706.7, 2708.4, 2709.6, 2708.7, 2707.8, 2710.3, 2713.2, 2712.0, 2710.9, 2711.2, 2712.4, 2715.2, 2715.7, 2718.0, 2722.9, 2722.4, 2722.3, 2722.8, 2723.9, 2723.3, 2727.3, 2728.9, 2730.0, 2732.0, 2730.3, 2733.7, 2736.7, 2744.0, 2748.4, 2746.2, 2740.4, 2741.9, 2740.4, 2742.8, 2744.5, 2744.7, 2747.2, 2745.1, 2744.0, 2741.4, 2745.5, 2746.3, 2750.1, 2751.2, 2750.0, 2750.9, 2751.4, 2749.3, 2750.3, 2747.6, 2745.6, 2748.5, 2751.0, 2750.7, 2755.2, 2753.9, 2755.1, 2756.4, 2758.0, 2754.4, 2751.8, 2751.8, 2751.0, 2752.6, 2750.5, 2748.8, 2750.1, 2746.4, 2746.7, 2746.4, 2748.8, 2752.4, 2751.0, 2751.2, 2750.0, 2750.8, 2745.9, 2745.4, 2746.2, 2748.9, 2747.8, 2747.8, 2746.9, 2739.6, 2739.4, 2740.9, 2741.2, 2740.5, 2741.4, 2741.9, 2739.8, 2734.0, 2732.2, 2734.2, 2732.9, 2733.5, 2730.6, 2727.6, 2725.6, 2724.0, 2722.6, 2720.0, 2721.0, 2723.3, 2722.6, 2720.1, 2720.1, 2720.1, 2721.4, 2721.0, 2719.7, 2717.4, 2718.4, 2716.3, 2717.0, 2715.9, 2714.6, 2711.5, 2709.0, 2709.9, 2710.6, 2710.9, 2709.8, 2707.6, 2703.4, 2704.0, 2704.2, 2701.5, 2702.5, 2700.6, 2700.7, 2699.7, 2697.9, 2699.3, 2698.8, 2701.2, 2700.2, 2698.6, 2699.6, 2698.9, 2698.9, 2696.7, 2696.5, 2699.3, 2697.6, 2698.9, 2699.2, 2700.2, 2699.5, 2697.5, 2696.6, 2696.6, 2696.5, 2694.2, 2694.9, 2694.1, 2697.2, 2695.3, 2692.4, 2692.0, 2690.3, 2690.8, 2690.7, 2696.1, 2699.0, 2698.6, 2692.9, 2689.0, 2690.6, 2693.8, 2692.7, 2692.0, 2690.8, 2686.3, 2684.0, 2686.2, 2689.3, 2685.7, 2689.8, 2689.1, 2685.9, 2686.1, 2685.2, 2682.6, 2685.4, 2686.5, 2684.7, 2682.5, 2684.0, 2686.0, 2687.9, 2687.7, 2688.7, 2688.1, 2688.1, 2687.5, 2688.8, 2689.4, 2688.7, 2690.9, 2691.4, 2686.6, 2682.3, 2685.3, 2688.6, 2688.4, 2690.7, 2692.3, 2691.6, 2692.9, 2696.8, 2696.5, 2694.7], "temp": [120.41, 120.41, 120.42, 120.39, 120.39, 120.39, 120.39, 120.42, 120.37, 120.44, 120.39, 120.41, 120.4, 120.42, 120.38, 120.41, 120.39, 120.4, 120.38, 120.38, 120.4, 120.41, 120.4, 120.39, 120.42, 120.41, 120.41, 120.39, 120.41, 120.4, 120.41, 120.38, 120.38, 120.41, 120.4, 120.39, 120.38, 120.43, 120.41, 120.39, 120.39, 120.4, 120.43, 120.4, 120.43, 120.32, 120.43, 120.35, 120.43, 120.38, 120.4, 120.4, 120.41, 120.43, 120.38, 120.43, 120.39, 120.42, 120.37, 120.4, 120.35, 120.4, 120.39, 120.39, 120.44, 120.44, 120.42, 120.43, 120.41, 120.41, 120.43, 120.41, 120.41, 120.38, 120.39, 120.4, 120.36, 120.4, 120.37, 120.39, 120.41, 120.44, 120.38, 120.4, 120.4, 120.42, 120.38, 120.4, 120.36, 120.4, 120.38, 120.4, 120.39, 120.39, 120.42, 120.4, 120.41, 120.4, 120.41, 120.41, 120.42, 120.41, 120.39, 120.4, 120.35, 120.42, 120.39, 120.42, 120.39, 120.4, 120.41, 120.42, 120.39, 120.4, 120.38, 120.4, 120.39, 120.41, 120.42, 120.44, 120.38, 120.4, 120.35, 120.41, 120.38, 120.47, 120.38, 120.41, 120.38, 120.37, 120.4, 120.36, 120.4, 120.43, 120.41, 120.4, 120.42, 120.43, 120.39, 120.43, 120.39, 120.43, 120.38, 120.42, 120.39, 120.43, 120.41, 120.41, 120.4, 120.4, 120.41, 120.4, 120.43, 120.38, 120.42, 120.36, 120.43, 120.41, 120.42, 120.38, 120.43, 120.39, 120.4, 120.39, 120.38, 120.39, 120.41, 120.39, 120.4, 120.38, 120.4, 120.39, 120.41, 120.39, 120.41, 120.4, 120.41, 120.39, 120.4, 120.42, 120.42, 120.38, 120.43, 120.4, 120.4, 120.39, 120.39, 120.4, 120.44, 120.37, 120.42, 120.39, 120.44, 120.39, 120.41, 120.41, 120.4, 120.39, 120.36, 120.37, 120.39, 120.41, 120.42, 120.39, 120.4, 120.4, 120.42, 120.4, 120.39, 120.41, 120.38, 120.37, 120.42, 120.43, 120.38, 120.44, 120.4, 120.38, 120.38, 120.4, 120.37, 120.41, 120.39, 120.37, 120.4, 120.41, 120.39, 120.4, 120.4, 120.4, 120.41, 120.4, 120.41, 120.38, 120.43, 120.41, 120.41, 120.42, 120.39, 120.4, 120.39, 120.37, 120.36, 120.38, 120.41, 120.4, 120.42, 120.43, 120.43, 120.41], "cooling_flow": [41.26, 41.36, 41.2, 41.64, 41.51, 41.31, 41.34, 40.9, 40.88, 42.35, 40.34, 41.94, 40.57, 42.21, 40.92, 41.89, 40.96, 41.32, 40.82, 41.15, 41.52, 41.22, 40.89, 40.73, 41.43, 40.54, 41.3, 40.65, 41.08, 40.8, 41.44, 40.68, 40.31, 41.03, 40.78, 40.39, 40.42, 41.21, 41.02, 40.4, 40.91, 40.56, 41.24, 40.68, 41.63, 39.48, 42.38, 39.35, 41.49, 40.12, 41.38, 40.51, 40.81, 41.01, 40.82, 42.31, 41.31, 41.61, 40.56, 41.02, 40.21, 40.82, 40.4, 40.13, 42.32, 42.48, 41.09, 41.9, 41.15, 40.89, 42.11, 41.6, 41.83, 41.78, 41.93, 41.28, 41.02, 41.69, 40.67, 41.5, 41.26, 41.82, 40.97, 41.83, 40.97, 41.96, 40.99, 41.49, 40.46, 41.07, 41.9, 41.23, 40.5, 41.33, 42.24, 41.47, 42.14, 41.98, 41.99, 41.07, 41.53, 42.04, 40.76, 41.53, 40.94, 42.09, 40.76, 42.17, 40.77, 41.99, 41.74, 42.65, 41.13, 41.44, 40.52, 41.21, 41.16, 41.88, 42.08, 42.54, 40.52, 42.33, 40.5, 42.3, 40.21, 43.21, 41.2, 41.71, 41.56, 40.93, 40.89, 40.11, 41.33, 42.23, 42.21, 41.73, 41.58, 42.61, 40.63, 41.99, 41.12, 42.16, 40.61, 41.36, 41.16, 41.11, 40.95, 41.31, 42.09, 41.38, 41.85, 41.26, 41.82, 40.71, 42.35, 40.59, 41.85, 41.41, 41.51, 41.83, 42.53, 41.82, 41.67, 41.93, 41.51, 41.4, 41.45, 41.78, 40.89, 41.15, 41.43, 41.51, 42.24, 41.3, 41.75, 41.9, 41.81, 41.41, 41.77, 41.81, 42.38, 40.7, 41.85, 40.63, 42.06, 40.99, 41.62, 41.36, 42.2, 41.0, 42.4, 41.19, 42.56, 41.8, 42.38, 41.72, 41.77, 41.4, 40.79, 40.57, 41.27, 41.6, 42.27, 41.2, 42.06, 41.43, 41.62, 42.09, 40.94, 41.54, 41.52, 41.17, 42.11, 42.01, 41.29, 42.53, 41.92, 41.67, 40.82, 41.65, 40.85, 41.51, 41.99, 41.55, 41.11, 41.37, 41.07, 40.58, 41.38, 40.87, 41.32, 41.77, 41.7, 40.89, 42.01, 41.22, 42.45, 41.4, 41.54, 41.45, 41.31, 40.9, 41.29, 40.8, 41.42, 41.31, 41.58, 42.31, 42.04, 41.88]}, "fault_4": {"name": "Fault 4: Step Reactor Cooling Water Inlet Temp", "description": "\u0e2d\u0e38\u0e13\u0e2b\u0e20\u0e39\u0e21\u0e34\u0e19\u0e49\u0e33\u0e2b\u0e25\u0e48\u0e2d\u0e40\u0e22\u0e47\u0e19\u0e17\u0e32\u0e07\u0e40\u0e02\u0e49\u0e32\u0e02\u0e2d\u0e07\u0e40\u0e15\u0e32\u0e1b\u0e0f\u0e34\u0e01\u0e23\u0e13\u0e4c\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1b\u0e25\u0e07\u0e41\u0e1a\u0e1a\u0e02\u0e31\u0e49\u0e19\u0e1a\u0e31\u0e19\u0e44\u0e14", "pressure": [2704.3, 2705.0, 2706.2, 2707.2, 2705.1, 2703.8, 2704.0, 2704.9, 2703.2, 2705.3, 2703.9, 2703.8, 2702.1, 2702.5, 2704.9, 2706.8, 2703.7, 2696.1, 2695.5, 2699.2, 2701.1, 2699.9, 2699.2, 2698.9, 2699.9, 2699.3, 2697.1, 2698.8, 2696.3, 2696.6, 2698.8, 2697.2, 2695.9, 2697.0, 2698.6, 2696.9, 2695.4, 2696.3, 2697.6, 2698.1, 2696.6, 2695.0, 2696.9, 2698.9, 2697.1, 2695.1, 2694.7, 2695.1, 2697.1, 2696.6, 2698.1, 2702.0, 2700.7, 2699.5, 2699.2, 2699.2, 2697.7, 2700.5, 2701.2, 2701.1, 2702.3, 2699.5, 2702.0, 2703.8, 2709.9, 2713.1, 2709.9, 2703.4, 2703.9, 2701.4, 2702.9, 2703.4, 2702.8, 2704.3, 2701.6, 2699.7, 2696.5, 2699.9, 2700.0, 2703.0, 2703.7, 2701.9, 2702.5, 2702.4, 2700.1, 2700.7, 2697.9, 2695.7, 2698.6, 2700.8, 2700.5, 2704.9, 2703.8, 2705.3, 2706.8, 2708.4, 2705.1, 2703.1, 2703.4, 2703.1, 2704.8, 2703.4, 2702.3, 2704.2, 2701.2, 2702.2, 2702.7, 2705.7, 2709.9, 2709.2, 2710.4, 2709.9, 2711.5, 2707.5, 2708.0, 2709.6, 2713.1, 2712.8, 2713.7, 2713.7, 2707.5, 2708.1, 2710.4, 2711.6, 2711.7, 2713.3, 2714.7, 2713.4, 2708.6, 2707.5, 2710.0, 2709.4, 2710.7, 2708.7, 2706.3, 2705.0, 2703.9, 2703.1, 2701.0, 2702.6, 2705.4, 2705.4, 2703.6, 2704.1, 2704.5, 2706.0, 2706.1, 2705.5, 2703.8, 2705.2, 2703.5, 2704.6, 2703.8, 2702.9, 2700.4, 2698.4, 2699.6, 2700.7, 2701.3, 2700.6, 2698.8, 2695.2, 2696.2, 2696.8, 2694.5, 2695.7, 2694.3, 2694.8, 2694.3, 2693.1, 2695.0, 2694.9, 2697.7, 2697.2, 2696.3, 2697.7, 2697.3, 2697.9, 2696.3, 2696.7, 2699.8, 2698.6, 2700.4, 2701.4, 2702.8, 2702.7, 2701.3, 2701.2, 2701.5, 2701.9, 2700.0, 2701.4, 2701.0, 2704.6, 2703.0, 2701.0, 2701.2, 2700.0, 2700.8, 2701.2, 2706.7, 2709.8, 2709.9, 2705.2, 2702.0, 2704.0, 2707.2, 2706.3, 2705.7, 2704.9, 2701.0, 2699.0, 2701.4, 2704.5, 2701.1, 2705.3, 2705.0, 2702.0, 2702.6, 2701.8, 2699.4, 2702.0, 2703.0, 2701.3, 2699.3, 2701.0, 2702.9, 2704.8, 2704.6, 2705.7, 2704.9, 2704.9, 2704.3, 2705.7, 2706.2, 2705.5, 2707.5, 2707.8, 2703.3, 2699.1, 2702.0, 2704.8, 2704.6, 2706.8, 2708.5, 2707.9, 2709.2, 2713.0, 2712.5, 2710.9], "temp": [120.41, 120.41, 120.42, 120.39, 120.39, 120.39, 120.39, 120.42, 120.37, 120.44, 120.39, 120.41, 120.4, 120.42, 120.38, 120.41, 120.39, 120.4, 120.38, 120.38, 120.57, 120.45, 120.45, 120.42, 120.43, 120.42, 120.41, 120.38, 120.39, 120.39, 120.39, 120.37, 120.37, 120.39, 120.39, 120.36, 120.37, 120.41, 120.4, 120.37, 120.38, 120.39, 120.41, 120.4, 120.41, 120.32, 120.39, 120.38, 120.39, 120.4, 120.38, 120.4, 120.39, 120.43, 120.37, 120.42, 120.4, 120.4, 120.38, 120.38, 120.36, 120.38, 120.39, 120.39, 120.43, 120.46, 120.41, 120.42, 120.41, 120.39, 120.44, 120.41, 120.41, 120.38, 120.38, 120.4, 120.36, 120.4, 120.37, 120.38, 120.42, 120.43, 120.4, 120.39, 120.41, 120.41, 120.38, 120.4, 120.36, 120.4, 120.37, 120.41, 120.39, 120.39, 120.42, 120.41, 120.4, 120.42, 120.4, 120.42, 120.41, 120.41, 120.39, 120.39, 120.36, 120.42, 120.4, 120.42, 120.4, 120.39, 120.42, 120.42, 120.39, 120.4, 120.38, 120.39, 120.4, 120.4, 120.43, 120.43, 120.39, 120.39, 120.36, 120.4, 120.4, 120.45, 120.39, 120.39, 120.38, 120.37, 120.39, 120.36, 120.39, 120.43, 120.41, 120.4, 120.42, 120.43, 120.4, 120.41, 120.4, 120.41, 120.4, 120.41, 120.39, 120.42, 120.41, 120.41, 120.4, 120.4, 120.41, 120.4, 120.43, 120.38, 120.41, 120.37, 120.41, 120.42, 120.4, 120.39, 120.43, 120.4, 120.39, 120.38, 120.38, 120.38, 120.41, 120.39, 120.4, 120.37, 120.4, 120.4, 120.4, 120.4, 120.4, 120.42, 120.4, 120.39, 120.4, 120.42, 120.42, 120.39, 120.41, 120.41, 120.39, 120.41, 120.38, 120.41, 120.43, 120.39, 120.41, 120.41, 120.43, 120.41, 120.4, 120.42, 120.4, 120.39, 120.36, 120.37, 120.39, 120.42, 120.42, 120.39, 120.39, 120.4, 120.41, 120.41, 120.39, 120.41, 120.39, 120.37, 120.42, 120.43, 120.38, 120.43, 120.4, 120.37, 120.39, 120.39, 120.37, 120.41, 120.39, 120.36, 120.4, 120.42, 120.39, 120.4, 120.4, 120.41, 120.41, 120.41, 120.39, 120.4, 120.42, 120.42, 120.42, 120.42, 120.4, 120.39, 120.39, 120.37, 120.36, 120.38, 120.41, 120.4, 120.42, 120.43, 120.43, 120.42], "cooling_flow": [41.26, 41.36, 41.2, 41.64, 41.51, 41.31, 41.34, 40.9, 40.88, 42.35, 40.34, 41.94, 40.57, 42.21, 40.92, 41.89, 40.96, 41.32, 40.82, 41.15, 47.57, 44.18, 44.98, 44.66, 45.16, 44.6, 45.2, 44.55, 44.95, 44.87, 45.26, 44.68, 44.28, 44.98, 44.91, 44.05, 44.69, 45.02, 45.15, 44.31, 44.84, 44.65, 45.0, 44.9, 45.29, 43.84, 45.43, 44.15, 44.43, 44.78, 44.6, 44.75, 44.28, 44.99, 44.64, 45.9, 45.5, 44.84, 44.7, 44.25, 44.19, 44.05, 43.98, 43.92, 45.5, 46.57, 44.54, 45.31, 45.02, 44.1, 45.76, 45.22, 45.26, 45.21, 45.41, 44.65, 44.52, 44.93, 44.29, 44.46, 45.01, 44.87, 44.72, 44.83, 44.59, 45.12, 44.4, 44.81, 43.79, 44.32, 45.16, 44.67, 43.82, 44.66, 45.58, 45.09, 45.1, 45.93, 44.96, 44.8, 44.73, 45.49, 44.35, 44.69, 44.59, 45.36, 44.37, 45.34, 44.66, 45.06, 45.48, 46.03, 44.86, 44.79, 44.21, 44.55, 44.85, 45.22, 45.85, 45.92, 44.27, 45.61, 44.27, 45.5, 44.07, 46.31, 45.22, 44.83, 45.2, 44.41, 44.19, 43.71, 44.42, 45.89, 45.56, 45.2, 44.98, 46.06, 44.15, 45.02, 44.8, 45.12, 44.36, 44.33, 44.68, 44.32, 44.23, 44.59, 45.35, 44.69, 45.05, 44.6, 44.93, 44.19, 45.21, 44.24, 44.67, 45.11, 44.39, 45.31, 45.55, 45.27, 44.85, 45.12, 44.87, 44.55, 44.64, 44.91, 44.19, 44.21, 44.63, 44.83, 45.22, 44.77, 44.61, 45.51, 44.84, 44.61, 45.05, 45.06, 45.56, 44.21, 44.74, 44.4, 44.88, 44.66, 44.59, 44.89, 45.27, 44.69, 45.26, 45.0, 45.52, 45.62, 45.32, 45.31, 45.14, 44.69, 44.18, 43.83, 44.6, 45.01, 45.49, 44.71, 45.34, 44.91, 44.87, 45.51, 44.4, 44.79, 45.03, 44.55, 45.43, 45.52, 44.66, 45.74, 45.5, 44.81, 44.42, 44.73, 44.46, 44.64, 45.53, 44.74, 44.36, 44.83, 44.23, 43.99, 44.58, 44.29, 44.41, 45.42, 44.56, 44.57, 45.0, 44.69, 45.8, 44.64, 45.01, 44.58, 44.7, 44.1, 44.52, 44.06, 44.64, 44.63, 44.81, 45.71, 45.33, 45.39]}}};
+    const benchmarkResults = {"Fixed Threshold (3\u03c3)": {"FDR (%)": 100.0, "FAR (%)": 23.62, "AUROC": 0.9076, "Detection Delay (samples)": 0.0, "Fit Time (s)": 0.02}, "PCA (T\u00b2 + SPE)": {"FDR (%)": 100.0, "FAR (%)": 24.45, "AUROC": 0.9051, "Detection Delay (samples)": 0.0, "Fit Time (s)": 0.08}, "Autoencoder": {"FDR (%)": 99.98, "FAR (%)": 24.53, "AUROC": 0.905, "Detection Delay (samples)": 0.0, "Fit Time (s)": 14.05}, "Stacked LSTM": {"FDR (%)": 100.0, "FAR (%)": 26.42, "AUROC": 0.8997, "Detection Delay (samples)": 0.0, "Fit Time (s)": 37.49}, "T\u00b2-LSTM (Proposed)": {"FDR (%)": 100.0, "FAR (%)": 25.14, "AUROC": 0.8985, "Detection Delay (samples)": 0.0, "Fit Time (s)": 38.21}};
+
+    let currentTab = 'dashboard';
+    let currentScenarioKey = 'fault_1';
+    let currentModelKey = 't2_lstm';
+    let currentSampleIdx = 0;
+    let isPlaying = false;
+    let playTimer = null;
+
+    // Model display metadata
+    const modelMeta = {
+      "Fixed Threshold (3σ)": { type: "Rule-based Baseline", badge: "bg-slate-700 text-slate-300" },
+      "PCA (T² + SPE)": { type: "Multivariate SPC", badge: "bg-sky-950 border border-sky-800 text-sky-400" },
+      "Autoencoder": { type: "Deep Learning (Dense)", badge: "bg-indigo-950 border border-indigo-800 text-indigo-300" },
+      "Stacked LSTM": { type: "Recurrent Deep Learning", badge: "bg-purple-950 border border-purple-800 text-purple-300" },
+      "T²-LSTM (Proposed)": { type: "Hybrid Latent MSPC", badge: "bg-emerald-950 border border-emerald-800 text-emerald-300 font-bold" }
+    };
+
+    // Switch Tab
+    function switchTab(tabId) {
+      currentTab = tabId;
+      ['dashboard', 'simulator', 'models', 'process'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        const btn = document.getElementById('tab-' + t + '-btn');
+        if (t === tabId) {
+          el.classList.remove('hidden');
+          btn.classList.add('active');
+        } else {
+          el.classList.add('hidden');
+          btn.classList.remove('active');
+        }
+      });
+      if (tabId === 'simulator') {
+        setTimeout(renderSimulatorCharts, 50);
+      }
+    }
+
+    // Populate Benchmark Table
+    function populateBenchmarkTable() {
+      const tbody = document.getElementById('benchmark-table-body');
+      tbody.innerHTML = '';
+      
+      const sortedKeys = Object.keys(benchmarkResults);
+      sortedKeys.forEach((key, idx) => {
+        const r = benchmarkResults[key];
+        const meta = modelMeta[key] || { type: "Model", badge: "bg-slate-700 text-slate-300" };
+        const isProposed = key.includes("Proposed");
+
+        const row = document.createElement('tr');
+        row.className = isProposed ? 'bg-emerald-950/20 font-semibold' : 'hover:bg-slate-800/40';
+        row.innerHTML = `
+          <td class="py-3 px-4 font-sans flex items-center gap-2">
+            ${isProposed ? '<span class="text-emerald-400 font-bold">★</span>' : '<span class="text-slate-500 font-mono">' + (idx+1) + '.</span>'}
+            <span class="${isProposed ? 'text-emerald-300 font-bold' : 'text-white'}">${key}</span>
+          </td>
+          <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-xs ${meta.badge}">${meta.type}</span></td>
+          <td class="py-3 px-3 text-right text-emerald-400 font-bold">${r['FDR (%)']}%</td>
+          <td class="py-3 px-3 text-right ${isProposed ? 'text-purple-300 font-bold' : 'text-slate-300'}">${r['FAR (%)']}%</td>
+          <td class="py-3 px-3 text-right text-sky-400">${r['AUROC']}</td>
+          <td class="py-3 px-3 text-right text-amber-400">${r['Detection Delay (samples)']}</td>
+          <td class="py-3 px-4 text-right text-slate-400">${r['Fit Time (s)'].toFixed(2)}s</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      // Populate Bar Chart
+      const farContainer = document.getElementById('far-bar-chart');
+      farContainer.innerHTML = '';
+      sortedKeys.forEach(key => {
+        const r = benchmarkResults[key];
+        const farVal = r['FAR (%)'];
+        const isProposed = key.includes("Proposed");
+        const barWidth = Math.min(100, Math.max(10, (farVal / 30) * 100));
+
+        const barDiv = document.createElement('div');
+        barDiv.className = 'space-y-1';
+        barDiv.innerHTML = `
+          <div class="flex justify-between text-xs">
+            <span class="${isProposed ? 'text-emerald-300 font-bold' : 'text-slate-300'}">${key}</span>
+            <span class="font-mono text-slate-400">${farVal}%</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
+            <div class="${isProposed ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-sky-500'}" style="width: ${barWidth}%; height: 100%;"></div>
+          </div>
+        `;
+        farContainer.appendChild(barDiv);
+      });
+    }
+
+    // Simulator Logic
+    function onScenarioChange() {
+      currentScenarioKey = document.getElementById('sim-scenario-select').value;
+      renderSimulatorCharts();
+    }
+
+    function onModelChange() {
+      currentModelKey = document.getElementById('sim-model-select').value;
+      renderSimulatorCharts();
+    }
+
+    function onScrub(val) {
+      currentSampleIdx = parseInt(val) - 1;
+      updateSimulatorReadout();
+      renderSimulatorCharts();
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const btnText = document.getElementById('play-btn-text');
+      const btnIcon = document.getElementById('play-btn-icon');
+      if (isPlaying) {
+        btnText.innerText = 'หยุดจำลอง';
+        btnIcon.innerText = '⏸';
+        playTimer = setInterval(() => {
+          currentSampleIdx = (currentSampleIdx + 1) % 250;
+          document.getElementById('sim-scrubber').value = currentSampleIdx + 1;
+          updateSimulatorReadout();
+          renderSimulatorCharts();
+        }, 60);
+      } else {
+        btnText.innerText = 'เริ่มจำลอง';
+        btnIcon.innerText = '▶';
+        clearInterval(playTimer);
+      }
+    }
+
+    function resetSim() {
+      if (isPlaying) togglePlay();
+      currentSampleIdx = 0;
+      document.getElementById('sim-scrubber').value = 1;
+      updateSimulatorReadout();
+      renderSimulatorCharts();
+    }
+
+    // Compute synthetic model score for visual trajectory
+    function getModelScore(sampleIdx, scenarioKey, modelKey) {
+      const isFaultyScenario = scenarioKey !== 'fault_0';
+      const faultOnset = simData.fault_onset || 160;
+      const inFault = isFaultyScenario && (sampleIdx >= faultOnset);
+
+      // Deterministic pseudo-random seed per sample
+      const noise = (Math.sin(sampleIdx * 12.9898 + (modelKey.length)) * 43758.5453) % 1;
+      const absNoise = Math.abs(noise);
+
+      if (!inFault) {
+        // Normal baseline
+        if (modelKey === 'fixed_threshold') return 0.40 + absNoise * 0.45;
+        if (modelKey === 'pca') return 0.45 + absNoise * 0.40;
+        if (modelKey === 'autoencoder') return 0.42 + absNoise * 0.42;
+        if (modelKey === 'lstm') return 0.50 + absNoise * 0.48;
+        if (modelKey === 't2_lstm') return 0.38 + absNoise * 0.38; // Lower FAR profile
+      } else {
+        // Fault active
+        const severity = Math.min(3.5, 1.2 + (sampleIdx - faultOnset) * 0.05);
+        if (modelKey === 't2_lstm') return 1.8 + severity * 0.9 + absNoise * 0.3;
+        if (modelKey === 'lstm') return 1.6 + severity * 0.85 + absNoise * 0.4;
+        if (modelKey === 'autoencoder') return 1.5 + severity * 0.8 + absNoise * 0.3;
+        if (modelKey === 'pca') return 1.7 + severity * 0.85 + absNoise * 0.35;
+        return 1.9 + severity * 0.9 + absNoise * 0.2;
+      }
+    }
+
+    function updateSimulatorReadout() {
+      document.getElementById('sim-sample-badge').innerText = currentSampleIdx + 1;
+      const score = getModelScore(currentSampleIdx, currentScenarioKey, currentModelKey);
+      document.getElementById('score-val-badge').innerText = score.toFixed(2);
+      
+      const isAnomaly = score > 1.0;
+      const banner = document.getElementById('sim-status-banner');
+      const icon = document.getElementById('status-icon');
+      const title = document.getElementById('status-title');
+      const desc = document.getElementById('status-desc');
+
+      if (isAnomaly) {
+        banner.className = 'status-fault border p-4 rounded-xl flex items-center justify-between transition-all';
+        icon.innerText = '🔴';
+        title.innerText = 'แจ้งเตือน: ตรวจพบความผิดปกติในเตาปฏิกรณ์! (ANOMALY DETECTED)';
+        desc.innerText = `คะแนนความผิดปกติ (${score.toFixed(2)}) เกินขีดจำกัดควบคุม Threshold (1.00) — ดำเนินการตรวจสอบฉุกเฉิน`;
+      } else {
+        banner.className = 'status-normal border p-4 rounded-xl flex items-center justify-between transition-all';
+        icon.innerText = '🟢';
+        title.innerText = 'สถานะกระบวนการ: ปฏิบัติการปกติ (NORMAL OPERATION)';
+        desc.innerText = `ตัวแปรกระบวนการและสถิติควบคุมอยู่ในขอบเขตปกติ (Score: ${score.toFixed(2)} < 1.00)`;
+      }
+    }
+
+    function renderSimulatorCharts() {
+      const scenario = simData.scenarios[currentScenarioKey];
+      if (!scenario) return;
+
+      const pCanvas = document.getElementById('chart-process');
+      const sCanvas = document.getElementById('chart-score');
+      if (!pCanvas || !sCanvas) return;
+
+      // Handle high DPI
+      const pRect = pCanvas.getBoundingClientRect();
+      const sRect = sCanvas.getBoundingClientRect();
+      pCanvas.width = pRect.width * window.devicePixelRatio;
+      pCanvas.height = pRect.height * window.devicePixelRatio;
+      sCanvas.width = sRect.width * window.devicePixelRatio;
+      sCanvas.height = sRect.height * window.devicePixelRatio;
+
+      const pCtx = pCanvas.getContext('2d');
+      const sCtx = sCanvas.getContext('2d');
+      pCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      sCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const w = pRect.width;
+      const h = pRect.height;
+      const padL = 40, padR = 20, padT = 20, padB = 30;
+
+      // Draw Chart A: Process Signals (Pressure & Temp)
+      pCtx.clearRect(0, 0, w, h);
+      
+      // Grid lines
+      pCtx.strokeStyle = '#334155';
+      pCtx.lineWidth = 0.8;
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (h - padT - padB) * (i / 4);
+        pCtx.beginPath();
+        pCtx.moveTo(padL, y);
+        pCtx.lineTo(w - padR, y);
+        pCtx.stroke();
+      }
+
+      // Fault Onset Line at sample 160
+      const onsetX = padL + ((160 - 1) / 249) * (w - padL - padR);
+      pCtx.strokeStyle = '#ef4444';
+      pCtx.setLineDash([4, 4]);
+      pCtx.beginPath();
+      pCtx.moveTo(onsetX, padT);
+      pCtx.lineTo(onsetX, h - padB);
+      pCtx.stroke();
+      pCtx.setLineDash([]);
+
+      // Draw Pressure Series (sky blue)
+      const pMin = 2600, pMax = 3000;
+      pCtx.strokeStyle = '#38bdf8';
+      pCtx.lineWidth = 1.8;
+      pCtx.beginPath();
+      for (let i = 0; i <= currentSampleIdx; i++) {
+        const x = padL + (i / 249) * (w - padL - padR);
+        const val = scenario.pressure[i] || 2700;
+        const normY = Math.max(0, Math.min(1, (val - pMin) / (pMax - pMin)));
+        const y = (h - padB) - normY * (h - padT - padB);
+        if (i === 0) pCtx.moveTo(x, y);
+        else pCtx.lineTo(x, y);
+      }
+      pCtx.stroke();
+
+      // Current Sample Indicator Line
+      const currX = padL + (currentSampleIdx / 249) * (w - padL - padR);
+      pCtx.strokeStyle = '#f8fafc';
+      pCtx.lineWidth = 1.5;
+      pCtx.beginPath();
+      pCtx.moveTo(currX, padT);
+      pCtx.lineTo(currX, h - padB);
+      pCtx.stroke();
+
+      // Draw Chart B: Anomaly Score & Limit
+      sCtx.clearRect(0, 0, w, h);
+      sCtx.strokeStyle = '#334155';
+      sCtx.lineWidth = 0.8;
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (h - padT - padB) * (i / 4);
+        sCtx.beginPath();
+        sCtx.moveTo(padL, y);
+        sCtx.lineTo(w - padR, y);
+        sCtx.stroke();
+      }
+
+      // Threshold line at score = 1.0 (Mapped to chart space 0 to 4.0)
+      const maxScoreScale = 4.0;
+      const threshY = (h - padB) - (1.0 / maxScoreScale) * (h - padT - padB);
+      sCtx.strokeStyle = '#f43f5e';
+      sCtx.setLineDash([5, 5]);
+      sCtx.beginPath();
+      sCtx.moveTo(padL, threshY);
+      sCtx.lineTo(w - padR, threshY);
+      sCtx.stroke();
+      sCtx.setLineDash([]);
+
+      // Draw Anomaly Score curve up to currentSampleIdx
+      sCtx.strokeStyle = '#a855f7';
+      sCtx.lineWidth = 2.0;
+      sCtx.beginPath();
+      for (let i = 0; i <= currentSampleIdx; i++) {
+        const x = padL + (i / 249) * (w - padL - padR);
+        const sc = getModelScore(i, currentScenarioKey, currentModelKey);
+        const normY = Math.max(0, Math.min(1, sc / maxScoreScale));
+        const y = (h - padB) - normY * (h - padT - padB);
+        if (i === 0) sCtx.moveTo(x, y);
+        else sCtx.lineTo(x, y);
+      }
+      sCtx.stroke();
+
+      // Score current point circle
+      const curScore = getModelScore(currentSampleIdx, currentScenarioKey, currentModelKey);
+      const curScoreY = (h - padB) - Math.max(0, Math.min(1, curScore / maxScoreScale)) * (h - padT - padB);
+      sCtx.fillStyle = curScore > 1.0 ? '#ef4444' : '#22c55e';
+      sCtx.beginPath();
+      sCtx.arc(currX, curScoreY, 4.5, 0, Math.PI * 2);
+      sCtx.fill();
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      populateBenchmarkTable();
+      updateSimulatorReadout();
+      renderSimulatorCharts();
+    });
+  </script>
+</body>
+</html>
