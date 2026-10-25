@@ -3,92 +3,483 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Chemical Reactor Anomaly Detection — TEP Benchmark</title>
-  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <title>TEP-anomaly — AI ตรวจจับความผิดปกติในกระบวนการเคมี</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #0f172a;
-      --card-bg: #1e293b;
-      --border-color: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent-blue: #38bdf8;
-      --accent-green: #22c55e;
-      --accent-red: #ef4444;
-      --accent-yellow: #f59e0b;
-      --accent-purple: #a855f7;
+      --paper: #f4f1e8;
+      --surface: #fbfaf6;
+      --ink: #183a37;
+      --muted: #64716a;
+      --rule: #d8d4c8;
+      --signal: #b65135;
+      --signal-soft: #f1e2d8;
+      --teal-soft: #e2ebe4;
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --space-5: 48px;
+      --space-6: 64px;
+      --font-body: 'IBM Plex Sans Thai', sans-serif;
+      --font-display: 'Noto Serif Thai', serif;
     }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0 !important;
+      background: var(--paper) !important;
+      color: var(--ink) !important;
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.7;
     }
+    a { color: inherit; }
+    button, select, input { font: inherit; }
+    button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 3px;
+    }
+    .site-header, .nav-shell, .intro, main, footer {
+      width: min(1240px, calc(100% - 64px));
+      max-width: none !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 76px;
+      margin-bottom: 0 !important;
+      padding: 12px 0 10px !important;
+      border-bottom: 1px solid var(--ink) !important;
+    }
+    .brand-lockup { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      font: 700 14px/1 var(--font-body);
+      letter-spacing: -.06em;
+    }
+    .brand-name { font: 700 14px/1.2 var(--font-body); letter-spacing: .08em; }
+    .brand-subtitle { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; letter-spacing: .12em; }
+    .project-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .project-status::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #587b5f;
+      content: "";
+    }
+    .repo-link {
+      padding: 9px 14px !important;
+      border: 1px solid var(--ink) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: var(--ink) !important;
+      font-size: 12px !important;
+      text-decoration: none;
+      box-shadow: none !important;
+      transition: background .2s ease, color .2s ease;
+    }
+    .repo-link:hover { background: var(--ink) !important; color: var(--surface) !important; }
+    .nav-shell { margin-bottom: 0 !important; }
+    .tabs {
+      display: flex;
+      gap: 4px !important;
+      overflow-x: auto;
+      padding: 10px 0 !important;
+      border: 0 !important;
+      border-bottom: 1px solid var(--rule) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      scrollbar-width: thin;
+    }
+    .tab-btn {
+      flex: 0 0 auto;
+      padding: 10px 14px !important;
+      border: 0;
+      border-bottom: 2px solid transparent !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: var(--muted) !important;
+      font-size: 12px !important;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .tab-btn:hover { color: var(--ink) !important; }
     .tab-btn.active {
-      background-color: #38bdf8;
-      color: #0f172a;
-      font-weight: 600;
+      border-bottom-color: var(--signal) !important;
+      background: transparent !important;
+      color: var(--ink) !important;
+      font-weight: 700;
     }
-    .status-normal {
-      background-color: rgba(34, 197, 94, 0.15);
-      border-color: #22c55e;
-      color: #4ade80;
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr);
+      align-items: center;
+      gap: clamp(32px, 7vw, 96px);
+      padding: clamp(48px, 8vw, 96px) 0 clamp(44px, 7vw, 80px);
+      border-bottom: 1px solid var(--rule);
     }
-    .status-fault {
-      background-color: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
-      color: #f87171;
-      animation: pulse 1.5s infinite;
+    .eyebrow, .section-kicker {
+      margin: 0 0 14px;
+      color: var(--signal);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+    .intro h1 {
+      max-width: 720px;
+      margin: 0;
+      color: var(--ink) !important;
+      font: 600 clamp(38px, 5.5vw, 72px)/1.22 var(--font-display);
+      letter-spacing: -.045em;
+    }
+    .intro h1 span { color: var(--signal); }
+    .intro-copy {
+      max-width: 620px;
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.85;
+    }
+    .intro-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 26px;
+      color: var(--muted);
+      font: 11px/1.5 var(--font-body);
+      letter-spacing: .04em;
+    }
+    .intro-meta strong { color: var(--ink); }
+    .process-figure {
+      position: relative;
+      min-height: 280px;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      background-color: #eeece3;
+      background-image: linear-gradient(rgba(24,58,55,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(24,58,55,.055) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .process-figure svg { display: block; width: 100%; height: 100%; min-height: 280px; }
+    .figure-caption {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      padding: 4px 8px;
+      background: var(--paper);
+      color: var(--muted);
+      font: 10px/1.4 var(--font-body);
+      letter-spacing: .06em;
+    }
+    main {
+      display: grid;
+      gap: var(--space-4) !important;
+      padding-top: var(--space-5);
+    }
+    main.hidden { display: none !important; }
+    main > div { min-width: 0; }
+    main .flex { display: flex; }
+    main .items-center { align-items: center; }
+    main .justify-between { justify-content: space-between; }
+    main .gap-2 { gap: 8px; }
+    main .gap-3 { gap: 12px; }
+    main .gap-4 { gap: 16px; }
+    main .mt-4 { margin-top: 16px; }
+    main .mb-4 { margin-bottom: 16px; }
+    main .mb-6 { margin-bottom: 24px; }
+    main .pb-4 { padding-bottom: 16px; }
+    main .border-b { border-bottom: 1px solid var(--rule); }
+    #tab-dashboard > div:nth-child(3),
+    #tab-simulator > div:nth-child(3),
+    #tab-models > div > div:last-child {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+    #tab-dashboard > div:nth-child(3) > div,
+    #tab-simulator > div:nth-child(3) > div {
+      padding: 22px;
+      border: 1px solid var(--rule);
+      background: var(--surface);
+    }
+    #tab-simulator > div:first-child > div {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+    #tab-simulator > div:first-child > div > div { min-width: 0; }
+    #tab-simulator > div:nth-child(3) > div { min-width: 0; }
+    #tab-simulator > div:nth-child(3) > div > div:last-child {
+      height: 256px;
+      padding: 8px !important;
+      border: 1px solid var(--rule) !important;
+      border-radius: 0 !important;
+      background: #f1efe8 !important;
+    }
+    #tab-models > div > div:first-of-type {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    #tab-models > div > div:first-of-type > div { min-width: 0; }
+    #tab-process > div > div:last-child {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    #tab-dashboard .overflow-x-auto { overflow-x: auto; }
+    #tab-dashboard > div:nth-child(2) > div:first-child {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    #tab-dashboard > div:nth-child(2) > div:first-child > span {
+      padding: 6px 10px;
+      border: 1px solid var(--rule);
+      color: var(--muted) !important;
+      white-space: nowrap;
+    }
+    #tab-dashboard table { width: 100%; margin-top: 16px; text-align: left; font-size: 13px; }
+    #tab-dashboard th, #tab-dashboard td { padding: 12px 10px; }
+    #tab-dashboard td { border-bottom: 1px solid var(--rule); }
+    #tab-dashboard th:first-child, #tab-dashboard td:first-child { padding-left: 14px; }
+    main > div[class*="bg-"] {
+      padding: clamp(20px, 3vw, 32px) !important;
+      border: 1px solid var(--rule) !important;
+      border-radius: 2px !important;
+      background: var(--surface) !important;
+      box-shadow: none !important;
+    }
+    main h2, main h3, main h4 { color: var(--ink) !important; }
+    main h2 { font: 600 clamp(22px, 2.5vw, 30px)/1.45 var(--font-display); }
+    main h3 { font-size: 15px !important; line-height: 1.6; }
+    main p { line-height: 1.8 !important; }
+    main [class*="text-slate-"], main [class*="text-white"] { color: var(--muted) !important; }
+    main [class*="text-sky-"], main [class*="text-emerald-"], main [class*="text-purple-"],
+    main [class*="text-amber-"], main [class*="text-rose-"] { color: var(--signal) !important; }
+    main [class*="border-slate-"], main [class*="border-sky-"], main [class*="border-purple-"],
+    main [class*="border-emerald-"], main [class*="border-amber-"] { border-color: var(--rule) !important; }
+    main [class*="bg-slate-"], main [class*="bg-sky-"], main [class*="bg-purple-"],
+    main [class*="bg-emerald-"], main [class*="bg-amber-"], main [class*="bg-indigo-"] {
+      background-color: #f1efe8 !important;
+    }
+    #tab-dashboard > div:first-child {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0 !important;
+      border: 0 !important;
+      border-bottom: 1px solid var(--ink) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+    }
+    #tab-dashboard > div:first-child > div {
+      padding: 10px 22px 18px !important;
+      border: 0 !important;
+      border-left: 1px solid var(--rule) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    #tab-dashboard > div:first-child > div:first-child { padding-left: 0 !important; border-left: 0 !important; }
+    #tab-dashboard > div:first-child > div > div:nth-child(2) {
+      margin-top: 6px !important;
+      color: var(--ink) !important;
+      font: 600 clamp(25px, 3.1vw, 38px)/1.3 var(--font-display);
+    }
+    #tab-dashboard > div:first-child > div > div:first-child { font-size: 11px !important; }
+    #tab-dashboard > div:first-child > div > div:last-child { font-size: 11px !important; }
+    table { border-collapse: collapse; }
+    thead { background: #eae7dc !important; }
+    th {
+      color: var(--muted) !important;
+      font: 600 10px/1.5 var(--font-body) !important;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    td { color: var(--ink) !important; border-color: var(--rule) !important; }
+    tbody tr { background: transparent !important; }
+    tbody tr:hover { background: #f1efe8 !important; }
+    #benchmark-table-body td { padding-top: 14px !important; padding-bottom: 14px !important; }
+    #benchmark-table-body td:first-child { display: table-cell; min-width: 190px; }
+    #far-bar-chart [class*="bg-slate-"] { background: #e8e5dc !important; }
+    #far-bar-chart [class*="bg-gradient-"], #far-bar-chart [class*="bg-sky-"] { background: var(--signal) !important; }
+    #far-bar-chart [style*="width"] { min-height: 100%; }
+    #far-bar-chart > div { margin-bottom: 16px; }
+    #far-bar-chart > div > div:first-child { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+    #far-bar-chart > div > div:last-child { height: 9px; overflow: hidden; border: 1px solid var(--rule); }
+    #tab-simulator select {
+      min-height: 44px;
+      border: 1px solid var(--rule) !important;
+      border-radius: 0 !important;
+      background: var(--surface) !important;
+      color: var(--ink) !important;
+    }
+    #tab-simulator label { display: block; margin-bottom: 8px; color: var(--muted) !important; font-size: 12px; font-weight: 600; }
+    #tab-simulator button { min-height: 42px; border: 1px solid var(--rule); cursor: pointer; }
+    #tab-simulator > div:first-child > div > div:last-child > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    #tab-simulator input[type="range"] { flex: 1; accent-color: var(--signal); }
+    #sim-play-btn { background: var(--ink) !important; color: white !important; border-radius: 0 !important; }
+    #sim-play-btn:hover { background: var(--signal) !important; }
+    #sim-status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-radius: 2px !important;
+      animation: none !important;
+    }
+    #sim-status-banner > div:first-child { display: flex; align-items: center; gap: 14px; }
+    #sim-status-banner > div:last-child { text-align: right; font-size: 13px; }
+    #status-icon { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid currentColor; font-weight: 700; }
+    .status-normal { background: var(--teal-soft) !important; border-color: #91a795 !important; color: var(--ink) !important; }
+    .status-fault { background: var(--signal-soft) !important; border-color: var(--signal) !important; color: #7b311f !important; }
+    #chart-process, #chart-score { width: 100%; height: 100%; }
+    #tab-models > div > div:first-of-type { background: #eeece3 !important; }
+    #tab-models > div > div:first-of-type > div {
+      padding: 14px;
+      border: 1px solid var(--rule);
+      border-radius: 0;
+      background: var(--surface) !important;
+      text-align: left;
+    }
+    #tab-models > div > div:last-child > div { padding: 16px; border: 1px solid var(--rule) !important; background: #f1efe8 !important; }
+    #tab-process > div > div:last-child > div { padding: 16px; border: 1px solid var(--rule) !important; background: #f1efe8 !important; }
+    .text-xs { font-size: 12px !important; }
+    .text-sm { font-size: 14px !important; }
+    .font-mono { font-family: 'IBM Plex Sans Thai', monospace !important; }
+    .hidden { display: none !important; }
+    footer {
+      margin-top: 64px !important;
+      padding: 20px 0 32px !important;
+      border-color: var(--rule) !important;
+      color: var(--muted) !important;
+      text-align: left !important;
+      font-size: 11px !important;
+    }
+    @media (max-width: 760px) {
+      .site-header, .nav-shell, .intro, main, footer { width: min(100% - 32px, 1240px); }
+      .site-header { flex-wrap: wrap; min-height: 68px; }
+      .tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tab-btn { width: 100%; padding-right: 6px !important; padding-left: 6px !important; text-align: center; }
+      .project-status { display: none; }
+      .intro { grid-template-columns: 1fr; gap: 28px; padding: 48px 0; }
+      .intro h1 { font-size: clamp(38px, 11vw, 58px); }
+      .process-figure, .process-figure svg { min-height: 220px; }
+      main { padding-top: 32px; gap: 24px !important; }
+      #tab-dashboard > div:first-child { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #tab-dashboard > div:first-child > div { padding: 12px 14px !important; border-bottom: 1px solid var(--rule) !important; }
+      #tab-dashboard > div:first-child > div:nth-child(odd) { padding-left: 0 !important; border-left: 0 !important; }
+      #tab-dashboard > div:first-child > div:nth-child(even) { padding-right: 0 !important; }
+      #tab-dashboard > div:first-child > div:nth-last-child(-n+2) { border-bottom: 0 !important; }
+      .table-wrap { overflow-x: auto; }
+      #tab-dashboard > div:nth-child(3), #tab-simulator > div:nth-child(3),
+      #tab-models > div > div:last-child { grid-template-columns: 1fr; }
+      #tab-simulator > div:first-child > div { grid-template-columns: 1fr; }
+      #tab-models > div > div:first-of-type { grid-template-columns: 1fr 1fr; }
+      #tab-process > div > div:last-child { grid-template-columns: 1fr; }
+      #sim-status-banner { align-items: flex-start; flex-direction: column; }
+      #sim-status-banner > div:last-child { text-align: left; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-6 lg:p-8">
+<body>
 
-  <!-- Header -->
-  <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-700 pb-5 gap-4">
-    <div>
-      <div class="flex items-center gap-3">
-        <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/40">TEP BENCHMARK</span>
-        <span class="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">5 MODELS OPERATIONAL</span>
-      </div>
-      <h1 class="text-2xl md:text-3xl font-bold mt-2 text-white tracking-tight">AI-Based Chemical Reactor Anomaly Detection</h1>
-      <p class="text-slate-400 text-sm mt-1">ระบบตรวจจับความผิดปกติของเตาปฏิกรณ์เคมีอุตสาหกรรม (Tennessee Eastman Process) ด้วยวิธีสถิติพหุตัวแปรและโครงข่ายประสาทเทียม</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="https://github.com/rinldaY/AIChemical" target="_blank" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-xs md:text-sm font-medium px-4 py-2.5 rounded-lg border border-slate-700 transition shadow">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-        GitHub Repository
-      </a>
-    </div>
+  <header class="site-header">
+    <a class="brand-lockup" href="#" aria-label="TEP-anomaly หน้าแรก">
+      <span class="brand-mark" aria-hidden="true">TEP</span>
+      <span><span class="brand-name">TEP—ANOMALY</span><span class="brand-subtitle">CHEMICAL PROCESS INTELLIGENCE</span></span>
+    </a>
+    <span class="project-status">งานวิจัยบน Tennessee Eastman Process</span>
+    <a href="https://github.com/rinldaY/AIChemical" target="_blank" rel="noreferrer" class="repo-link">ดูโค้ดและวิธีทดลอง <span aria-hidden="true">↗</span></a>
   </header>
 
-  <!-- Navigation Tabs -->
-  <div class="max-w-7xl mx-auto mb-6">
-    <div class="flex flex-wrap gap-2 p-1.5 bg-slate-800/80 rounded-xl border border-slate-700/80">
-      <button onclick="switchTab('dashboard')" id="tab-dashboard-btn" class="tab-btn active px-4 py-2 rounded-lg text-xs md:text-sm transition flex items-center gap-2">
-        <span>📊</span> สรุปผล Benchmark ทั้ง 5 โมเดล
+  <div class="nav-shell">
+    <nav class="tabs" aria-label="ส่วนต่างๆ ของงานวิจัย">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard-btn" class="tab-btn active" aria-controls="tab-dashboard" aria-current="page">
+        ผลการทดลอง
       </button>
-      <button onclick="switchTab('simulator')" id="tab-simulator-btn" class="tab-btn px-4 py-2 rounded-lg text-xs md:text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
-        <span>📈</span> จำลองการตรวจจับ Real-time (Simulator)
+      <button onclick="switchTab('simulator')" id="tab-simulator-btn" class="tab-btn" aria-controls="tab-simulator">
+        ห้องจำลอง
       </button>
-      <button onclick="switchTab('models')" id="tab-models-btn" class="tab-btn px-4 py-2 rounded-lg text-xs md:text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
-        <span>🧠</span> โครงสร้างและสมการโมเดล (T²-LSTM)
+      <button onclick="switchTab('models')" id="tab-models-btn" class="tab-btn" aria-controls="tab-models">
+        วิธีคิดของโมเดล
       </button>
-      <button onclick="switchTab('process')" id="tab-process-btn" class="tab-btn px-4 py-2 rounded-lg text-xs md:text-sm text-slate-300 hover:text-white transition flex items-center gap-2">
-        <span>🏭</span> ผังกระบวนการเคมี & เซนเซอร์ 52 ตัว
+      <button onclick="switchTab('process')" id="tab-process-btn" class="tab-btn" aria-controls="tab-process">
+        กระบวนการและเซนเซอร์
       </button>
-    </div>
+    </nav>
   </div>
 
+  <section class="intro" aria-labelledby="page-title">
+    <div>
+      <p class="eyebrow">AI × CHEMICAL PROCESS / RESEARCH NOTE 01</p>
+      <h1 id="page-title">เมื่อกระบวนการ<br>เริ่ม <span>ผิดจังหวะ</span></h1>
+      <p class="intro-copy">ระบบ AI ที่อ่านความสัมพันธ์ของตัวแปรใน Tennessee Eastman Process เพื่อแยกสัญญาณผิดปกติออกจากความผันผวนตามธรรมชาติของโรงงาน</p>
+      <div class="intro-meta">
+        <span><strong>52</strong> ตัวแปรกระบวนการ</span>
+        <span><strong>5</strong> โมเดลที่เปรียบเทียบ</span>
+        <span><strong>T²-LSTM</strong> โมเดลที่นำเสนอ</span>
+      </div>
+    </div>
+    <figure class="process-figure">
+      <svg viewBox="0 0 520 300" role="img" aria-labelledby="reactor-title reactor-desc">
+        <title id="reactor-title">ภาพเส้นสายของระบบตรวจสอบเตาปฏิกรณ์</title>
+        <desc id="reactor-desc">แผนภาพเตาปฏิกรณ์และเซนเซอร์ที่เชื่อมต่อกับระบบวิเคราะห์สัญญาณ</desc>
+        <g fill="none" stroke="#183a37" stroke-width="1.5">
+          <path d="M24 153h84m0 0v-35h44m-44 35v36h44m146-36h49v-42h42m-42 42v42h42m55-42h90" />
+          <path d="M152 89h119a14 14 0 0 1 14 14v100a14 14 0 0 1-14 14H152a14 14 0 0 1-14-14V103a14 14 0 0 1 14-14Z" />
+          <path d="M166 76v13m91-13v13m-91 128v13m91-13v13M181 115h61m-61 18h61m-61 18h61m-61 18h61m-61 18h61" />
+          <path d="M347 98h58v30h-58zm0 84h58v30h-58zM438 134h49v38h-49z" />
+          <path d="M361 108h30m-30 10h30m-30 75h30m-30 10h30M449 145h27m-27 10h27m-27 10h27" />
+          <circle cx="108" cy="153" r="5" fill="#b65135" stroke="none"/>
+          <circle cx="315" cy="153" r="5" fill="#b65135" stroke="none"/>
+          <circle cx="424" cy="153" r="5" fill="#b65135" stroke="none"/>
+          <path d="M213 89V52h82" stroke-dasharray="4 5"/>
+          <path d="M295 46l8 6-8 6" stroke="#b65135"/>
+          <path d="M28 243h107m18 0h42m18 0h40m18 0h55" stroke="#b65135" stroke-dasharray="2 5"/>
+        </g>
+        <g fill="#64716a" font-family="IBM Plex Sans Thai, sans-serif" font-size="10" letter-spacing="1">
+          <text x="28" y="139">FEED</text><text x="153" y="75">REACTOR / R-101</text>
+          <text x="349" y="91">CONDENSER</text><text x="438" y="127">SEPARATOR</text>
+          <text x="28" y="261">SIGNAL STREAM</text><text x="320" y="261">52 CHANNELS · TEP</text>
+          <text x="303" y="47" fill="#b65135">MODEL</text>
+        </g>
+      </svg>
+      <figcaption class="figure-caption">SCHEMATIC / TENNESSEE EASTMAN PROCESS</figcaption>
+    </figure>
+  </section>
+
   <!-- TAB 1: Benchmark Matrix & Key Insights -->
-  <main id="tab-dashboard" class="max-w-7xl mx-auto space-y-6">
+  <main id="tab-dashboard" class="max-w-7xl mx-auto space-y-6" aria-label="ผลการทดลอง" aria-hidden="false">
     <!-- KPI Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-slate-800/60 border border-slate-700 p-4 rounded-xl shadow-sm">
-        <div class="text-slate-400 text-xs font-medium">Fault Detection Rate (FDR)</div>
+        <div class="text-slate-400 text-xs font-medium">T²-LSTM · Fault Detection Rate</div>
         <div class="text-2xl md:text-3xl font-extrabold text-emerald-400 mt-1">100.0%</div>
         <div class="text-xs text-slate-500 mt-1">ตรวจพบความผิดปกติได้ครบทุกเคส</div>
       </div>
@@ -103,7 +494,7 @@
         <div class="text-xs text-slate-500 mt-1">ลด False Alarm จาก 26.42% เหลือ 25.14%</div>
       </div>
       <div class="bg-slate-800/60 border border-slate-700 p-4 rounded-xl shadow-sm">
-        <div class="text-slate-400 text-xs font-medium">Detection Delay</div>
+        <div class="text-slate-400 text-xs font-medium">T²-LSTM · Detection Delay</div>
         <div class="text-2xl md:text-3xl font-extrabold text-amber-400 mt-1">0.0</div>
         <div class="text-xs text-slate-500 mt-1">ตรวจพบได้ทันที ณ จุดเกิดความผิดปกติ</div>
       </div>
@@ -114,7 +505,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-700 gap-2">
         <div>
           <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <span>🏆</span> ตารางผลการทดลองเปรียบเทียบทั้ง 5 โมเดล (TEP Test Set)
+            ตารางผลการทดลองเปรียบเทียบทั้ง 5 โมเดล (TEP Test Set)
           </h2>
           <p class="text-xs text-slate-400 mt-0.5">แบ่งชุดข้อมูลด้วย simulationRun อย่างเคร่งครัด (Train = ข้อมูลปกติ 100%, Scaler fit จาก Train เท่านั้น)</p>
         </div>
@@ -145,7 +536,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-5">
         <h3 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> เปรียบเทียบ False Alarm Rate (FAR %) — ยิ่งต่ำยิ่งดี
+          เปรียบเทียบ False Alarm Rate (FAR %) — ยิ่งต่ำยิ่งดี
         </h3>
         <p class="text-xs text-slate-400 mb-4">แสดงอัตราการแจ้งเตือนผิดพลาดของแต่ละโมเดลเมื่อระบบทำงานปกติ</p>
         <div id="far-bar-chart" class="space-y-3 font-sans">
@@ -173,7 +564,7 @@
   </main>
 
   <!-- TAB 2: Interactive Anomaly Simulator -->
-  <main id="tab-simulator" class="max-w-7xl mx-auto space-y-6 hidden">
+  <main id="tab-simulator" class="max-w-7xl mx-auto space-y-6 hidden" aria-label="ห้องจำลอง" aria-hidden="true">
     <!-- Controls Header -->
     <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-sm">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -224,9 +615,9 @@
     </div>
 
     <!-- Live Status Banner -->
-    <div id="sim-status-banner" class="status-normal border p-4 rounded-xl flex items-center justify-between transition-all">
+    <div id="sim-status-banner" class="status-normal border p-4 rounded-xl flex items-center justify-between transition-all" role="status" aria-live="polite">
       <div class="flex items-center gap-3">
-        <span id="status-icon" class="text-2xl">🟢</span>
+        <span id="status-icon" aria-hidden="true">✓</span>
         <div>
           <div id="status-title" class="font-bold text-sm md:text-base">สถานะกระบวนการ: ปฏิบัติการปกติ (NORMAL OPERATION)</div>
           <div id="status-desc" class="text-xs opacity-80 mt-0.5">ตัวแปรกระบวนการอยู่ในเกณฑ์ควบคุมปกติ ข้อมูลยังไม่เกินขีดจำกัด</div>
@@ -244,7 +635,7 @@
       <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-sm">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <span>📡</span> สัญญาณจากเซนเซอร์เตาปฏิกรณ์เคมี (TEP Sensor Streams)
+            สัญญาณจากเซนเซอร์เตาปฏิกรณ์เคมี (TEP Sensor Streams)
           </h3>
           <div class="flex items-center gap-2 text-xs">
             <span class="text-sky-400 font-medium">● Pressure (XMEAS_7)</span>
@@ -261,7 +652,7 @@
       <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5 shadow-sm">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <span>⚡</span> คะแนนความผิดปกติและการแจ้งเตือน (Anomaly Score & Limit)
+            คะแนนความผิดปกติและการแจ้งเตือน (Anomaly Score & Limit)
           </h3>
           <span class="text-xs text-rose-400 font-medium">--- Threshold Limit (1.0)</span>
         </div>
@@ -274,10 +665,10 @@
   </main>
 
   <!-- TAB 3: Model Architecture & Math Foundations -->
-  <main id="tab-models" class="max-w-7xl mx-auto space-y-6 hidden">
+  <main id="tab-models" class="max-w-7xl mx-auto space-y-6 hidden" aria-label="วิธีคิดของโมเดล" aria-hidden="true">
     <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-6 shadow-sm">
       <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-        <span>🧬</span> สถาปัตยกรรมโมเดลนำเสนอ: T²-LSTM (Proposed Hybrid Architecture)
+        สถาปัตยกรรมโมเดลนำเสนอ: T²-LSTM (Proposed Hybrid Architecture)
       </h2>
       <p class="text-sm text-slate-300 leading-relaxed mb-6">
         โมเดล <strong>T²-LSTM</strong> ได้รับการออกแบบเพื่อแก้โจทย์เฉพาะของโรงงานเคมี โดยผสานขีดความสามารถในการสกัดพลวัตเวลาที่ไม่เป็นเส้นตรง (Non-linear Temporal Dynamics) ของ LSTM เข้ากับการควบคุมกระบวนการเชิงสถิติ (MSPC) ของ Hotelling's T² ในมิติเวกเตอร์แฝง (Latent Space)
@@ -332,10 +723,10 @@
   </main>
 
   <!-- TAB 4: Process Sensor Map & Flowsheet -->
-  <main id="tab-process" class="max-w-7xl mx-auto space-y-6 hidden">
+  <main id="tab-process" class="max-w-7xl mx-auto space-y-6 hidden" aria-label="กระบวนการและเซนเซอร์" aria-hidden="true">
     <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-6 shadow-sm">
       <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-        <span>🏭</span> โครงสร้างโรงงานจำลอง Tennessee Eastman Process (TEP)
+        โครงสร้างโรงงานจำลอง Tennessee Eastman Process (TEP)
       </h2>
       <p class="text-sm text-slate-300 leading-relaxed mb-6">
         กระบวนการ Tennessee Eastman Process ประกอบด้วย 5 หน่วยปฏิบัติการหลัก ได้แก่ เตาปฏิกรณ์เคมีแบบกวนต่อเนื่อง (Reactor), หม้อควบแน่น (Condenser), ถังแยกไอ-ของเหลว (Flash Drum Separator), คอมเพรสเซอร์หมุนเวียนก๊าซ (Compressor), และหอกลั่นไล่สารเบา (Stripper Column) รวมตัวแปรที่ตรวจวัดทั้งสิ้น 52 ตัวแปร
@@ -392,9 +783,13 @@
         if (t === tabId) {
           el.classList.remove('hidden');
           btn.classList.add('active');
+          btn.setAttribute('aria-current', 'page');
+          el.setAttribute('aria-hidden', 'false');
         } else {
           el.classList.add('hidden');
           btn.classList.remove('active');
+          btn.removeAttribute('aria-current');
+          el.setAttribute('aria-hidden', 'true');
         }
       });
       if (tabId === 'simulator') {
@@ -457,11 +852,13 @@
     // Simulator Logic
     function onScenarioChange() {
       currentScenarioKey = document.getElementById('sim-scenario-select').value;
+      updateSimulatorReadout();
       renderSimulatorCharts();
     }
 
     function onModelChange() {
       currentModelKey = document.getElementById('sim-model-select').value;
+      updateSimulatorReadout();
       renderSimulatorCharts();
     }
 
@@ -540,12 +937,12 @@
 
       if (isAnomaly) {
         banner.className = 'status-fault border p-4 rounded-xl flex items-center justify-between transition-all';
-        icon.innerText = '🔴';
+        icon.innerText = '!';
         title.innerText = 'แจ้งเตือน: ตรวจพบความผิดปกติในเตาปฏิกรณ์! (ANOMALY DETECTED)';
         desc.innerText = `คะแนนความผิดปกติ (${score.toFixed(2)}) เกินขีดจำกัดควบคุม Threshold (1.00) — ดำเนินการตรวจสอบฉุกเฉิน`;
       } else {
         banner.className = 'status-normal border p-4 rounded-xl flex items-center justify-between transition-all';
-        icon.innerText = '🟢';
+        icon.innerText = '✓';
         title.innerText = 'สถานะกระบวนการ: ปฏิบัติการปกติ (NORMAL OPERATION)';
         desc.innerText = `ตัวแปรกระบวนการและสถิติควบคุมอยู่ในขอบเขตปกติ (Score: ${score.toFixed(2)} < 1.00)`;
       }
@@ -580,7 +977,7 @@
       pCtx.clearRect(0, 0, w, h);
       
       // Grid lines
-      pCtx.strokeStyle = '#334155';
+      pCtx.strokeStyle = '#d8d4c8';
       pCtx.lineWidth = 0.8;
       for (let i = 0; i <= 4; i++) {
         const y = padT + (h - padT - padB) * (i / 4);
@@ -592,7 +989,7 @@
 
       // Fault Onset Line at sample 160
       const onsetX = padL + ((160 - 1) / 249) * (w - padL - padR);
-      pCtx.strokeStyle = '#ef4444';
+      pCtx.strokeStyle = '#b65135';
       pCtx.setLineDash([4, 4]);
       pCtx.beginPath();
       pCtx.moveTo(onsetX, padT);
@@ -602,7 +999,7 @@
 
       // Draw Pressure Series (sky blue)
       const pMin = 2600, pMax = 3000;
-      pCtx.strokeStyle = '#38bdf8';
+      pCtx.strokeStyle = '#183a37';
       pCtx.lineWidth = 1.8;
       pCtx.beginPath();
       for (let i = 0; i <= currentSampleIdx; i++) {
@@ -615,9 +1012,22 @@
       }
       pCtx.stroke();
 
+      pCtx.strokeStyle = '#b65135';
+      pCtx.lineWidth = 1.5;
+      pCtx.beginPath();
+      for (let i = 0; i <= currentSampleIdx; i++) {
+        const x = padL + (i / 249) * (w - padL - padR);
+        const val = scenario.temp[i] || 120;
+        const normY = Math.max(0, Math.min(1, (val - 119) / 2));
+        const y = (h - padB) - normY * (h - padT - padB);
+        if (i === 0) pCtx.moveTo(x, y);
+        else pCtx.lineTo(x, y);
+      }
+      pCtx.stroke();
+
       // Current Sample Indicator Line
       const currX = padL + (currentSampleIdx / 249) * (w - padL - padR);
-      pCtx.strokeStyle = '#f8fafc';
+      pCtx.strokeStyle = '#64716a';
       pCtx.lineWidth = 1.5;
       pCtx.beginPath();
       pCtx.moveTo(currX, padT);
@@ -626,7 +1036,7 @@
 
       // Draw Chart B: Anomaly Score & Limit
       sCtx.clearRect(0, 0, w, h);
-      sCtx.strokeStyle = '#334155';
+      sCtx.strokeStyle = '#d8d4c8';
       sCtx.lineWidth = 0.8;
       for (let i = 0; i <= 4; i++) {
         const y = padT + (h - padT - padB) * (i / 4);
@@ -639,7 +1049,7 @@
       // Threshold line at score = 1.0 (Mapped to chart space 0 to 4.0)
       const maxScoreScale = 4.0;
       const threshY = (h - padB) - (1.0 / maxScoreScale) * (h - padT - padB);
-      sCtx.strokeStyle = '#f43f5e';
+      sCtx.strokeStyle = '#b65135';
       sCtx.setLineDash([5, 5]);
       sCtx.beginPath();
       sCtx.moveTo(padL, threshY);
@@ -648,7 +1058,7 @@
       sCtx.setLineDash([]);
 
       // Draw Anomaly Score curve up to currentSampleIdx
-      sCtx.strokeStyle = '#a855f7';
+      sCtx.strokeStyle = '#183a37';
       sCtx.lineWidth = 2.0;
       sCtx.beginPath();
       for (let i = 0; i <= currentSampleIdx; i++) {
@@ -664,7 +1074,7 @@
       // Score current point circle
       const curScore = getModelScore(currentSampleIdx, currentScenarioKey, currentModelKey);
       const curScoreY = (h - padB) - Math.max(0, Math.min(1, curScore / maxScoreScale)) * (h - padT - padB);
-      sCtx.fillStyle = curScore > 1.0 ? '#ef4444' : '#22c55e';
+      sCtx.fillStyle = curScore > 1.0 ? '#b65135' : '#587b5f';
       sCtx.beginPath();
       sCtx.arc(currX, curScoreY, 4.5, 0, Math.PI * 2);
       sCtx.fill();
